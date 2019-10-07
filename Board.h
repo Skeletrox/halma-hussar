@@ -6,11 +6,11 @@ using namespace std;
 
 class Board {
 private:
-	char** state;
+	StateVector state;
 	PositionsVector blackBase, whiteBase;
 
 public:
-	Board(char **inpState);
+	Board(StateVector inpState);
 	FutureStatesMap getFutureStates(StateVector state, PositionsVector positions);
 };
 

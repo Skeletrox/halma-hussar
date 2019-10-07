@@ -2,20 +2,16 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "components.h"
+#include "Board.h"
+#include "Player.h"
+#include "util.h"
 
 using namespace std;
 
 int main() {
-	cout << "Hello" << endl;
-	// Take inputs and store them in a vector
-	ifstream inputFile;
-	inputFile.open("./input.txt");
-	string s;
-	vector<string> readInput;
-	while (inputFile >> s) {
-		readInput.push_back(s);
-	}
-	/*
+	/*Take inputs and store them in a vector
+
 		Line Sequence:
 			First line: SINGLE / GAME => Type of evaluation, or whatever
 			Second line: BLACK or WHITE, what your team is
@@ -25,14 +21,39 @@ int main() {
 				B: Black Piece
 				.: Empty Cell
 	*/
-	for (string s : readInput) {
-		cout << s << endl;
+
+	ifstream inputFile;
+	inputFile.open("./input.txt");
+	StateVector initState;
+	string executionType, s;
+	char team;
+	float timeLeft = 100.0;
+	int counter = 0;
+	while (inputFile >> s) {
+		switch (counter) {
+		case 0:
+			// First line: Type of execution
+			executionType = s;
+			break;
+		case 1:
+			// Second line: Team
+			team = s == "WHITE" ? 'W' : 'B';
+			break;
+		case 2:
+			// Third line: Number of seconds remaining
+			timeLeft = stof(s);
+			break;
+		default:
+			// The board
+			vector<char> row(s.begin(), s.end());
+			initState.push_back(row);
+		}
+		counter++;
 	}
-	/*
-		Outputs: 
-			E x_from,y_from x_to,y_to   Move to an empty cell
-				OR
-			J x_from,y_from x_to,y_to   Jump to an empty cell
-			One move per line
-	*/
+	Board board = Board(initState);
+	PositionsVector playerPositions = getPositions(initState, team);
+	for (array<int, 2> pos : playerPositions) {
+		cout << pos[0] << " " << pos[1] << endl;
+	}
+	Player player = Player(team, playerPositions);
 }

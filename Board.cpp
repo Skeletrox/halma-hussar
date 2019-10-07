@@ -2,7 +2,7 @@
 #include <vector>
 #include<array>
 
-Board::Board(char** inpState) {
+Board::Board(StateVector inpState) {
 	state = inpState;
 	/* Define the base anchors and build the bases as diagonally
 		opposite mirrors.
