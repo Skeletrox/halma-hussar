@@ -1,5 +1,6 @@
 #pragma once
 #include "components.h"
+#include <array>
 
 class Player {
 private:
@@ -24,7 +25,7 @@ public:
 	//Returns the team of the character
 	char getTeam();
 	// Getter for scores, returns an array of floats
-	float* getScores();
+	std::array<float,2> getScores();
 	// Setter for scores, updates scores
 	void setScores(float* scores);
 	// Gets locations of all pieces of player

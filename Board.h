@@ -11,6 +11,6 @@ private:
 
 public:
 	Board(char **inpState);
-	FutureStatesMap getFutureStates(StateArray state, PositionsVector positions);
+	FutureStatesMap getFutureStates(StateVector state, PositionsVector positions);
 };
 

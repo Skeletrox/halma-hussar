@@ -51,7 +51,7 @@ Board::Board(char** inpState) {
 
 //TODO: Update function sigature to consider depth
 //TODO: Update function signature/working to avoid a piece in enemy base jumping out of the opponent's base
-FutureStatesMap Board::getFutureStates(StateArray state, PositionsVector positions) {
+FutureStatesMap Board::getFutureStates(StateVector state, PositionsVector positions) {
 
 	// How do you go about this?
 	// For every move-able coin, you make states with it moved in the directions it can
@@ -84,8 +84,7 @@ FutureStatesMap Board::getFutureStates(StateArray state, PositionsVector positio
 		}
 		// Iterate through the list of all adjacent cells and ensure we return only the acceptable states.
 		for (int j = 0; j < 8; j++) {
-			StateArray newState;
-			std::copy(state[0], state[15], newState);
+			StateVector newState(state);
 			int currX = adjacentCells[j][0], currY = adjacentCells[j][1];
 			if (currX < 0 || currX > 15 || currY < 0 || currY > 15) {
 				continue;
@@ -99,7 +98,7 @@ FutureStatesMap Board::getFutureStates(StateArray state, PositionsVector positio
 				newState[y][x] = newState[y][x] ^ newState[currY][currX];
 				newState[currY][currX] = newState[y][x] ^ newState[currY][currX];
 				newState[y][x] = newState[y][x] ^ newState[currY][currX];
-				futures.insert(pair<PositionsVector, StateArray>({ {x, y}, {currX, currY} }, newState));
+				futures.insert(pair<PositionsVector, StateVector>({ {x, y}, {currX, currY} }, newState));
 			} else {
 				/* 
 					Extend our search
@@ -121,7 +120,7 @@ FutureStatesMap Board::getFutureStates(StateArray state, PositionsVector positio
 					newState[y][x] = newState[y][x] ^ newState[currY + yFactor][currX + xFactor];
 					newState[currY + yFactor][currX + xFactor] = newState[y][x] ^ newState[currY + yFactor][currX + xFactor];
 					newState[y][x] = newState[y][x] ^ newState[currY + yFactor][currX + xFactor];
-					futures.insert(pair<PositionsVector, StateArray>({ {x, y}, {currX + xFactor, currY + yFactor}}, newState));
+					futures.insert(pair<PositionsVector, StateVector>({ {x, y}, {currX + xFactor, currY + yFactor}}, newState));
 					// The updated positions argument is now a single array holding the position of
 					// just this thing.
 					vector<array<int, 2>> newPositions = {{currX, currY}};

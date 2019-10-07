@@ -1,5 +1,5 @@
 #include "Player.h"
-
+#include <array>
 
 Player::Player(char argTeam, PositionsVector argLocations) {
 	team = argTeam;
@@ -12,8 +12,8 @@ char Player::getTeam() {
 	return team;
 }
 
-float* Player::getScores() {
-	float returnable[2] = { scoreArrange, scoreCapture };
+std::array<float, 2> Player::getScores() {
+	std::array<float, 2> returnable = { scoreArrange, scoreCapture };
 	return returnable;
 }
 
@@ -25,6 +25,7 @@ void Player::setScores(float* scores) {
 int** Player::makeMove(char **state) {
 	// Given a state, choose the appropriate movement and get a score
 	// Get all future states for the current state
+	return NULL;
 }
 
 PositionsVector Player::getLocations() {
