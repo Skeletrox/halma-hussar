@@ -1,6 +1,7 @@
 #include "Board.h"
 #include <vector>
-#include<array>
+#include <array>
+#include <iostream>
 
 Board::Board(StateVector inpState) {
 	state = inpState;
@@ -60,7 +61,7 @@ FutureStatesMap Board::getFutureStates(StateVector state, PositionsVector positi
 	// Choose from positions supplied
 	FutureStatesMap futures;
 	int numPositions = positions.size();
-	for (int i = 0; i < 19; i++) {
+	for (int i = 0; i < numPositions; i++) {
 		// The point is expressed as x, y
 		// See if all adjacent points are okay
 		array<int, 2> current = positions[i];
@@ -111,28 +112,20 @@ FutureStatesMap Board::getFutureStates(StateVector state, PositionsVector positi
 				int xFactor = int(x <= currX) - int(x == currX) - int(x > currX);
 				int yFactor = int(y <= currY) - int(y == currY) - int(y > currY);
 				// Check the next value, while ensuring that it is accessible
-				int newTargetx = x + xFactor, newTargety = y + yFactor;
+				int newTargetx = currX + xFactor, newTargety = currY + yFactor;
 				if (newTargetx < 0 || newTargetx > 15 || newTargety < 0 || newTargety > 15) {
 					continue;
 				}
-				if (newState[y + yFactor][x + xFactor] == '.') {
-					// Perform the jump and recursively try to get the next move
-					newState[y][x] = newState[y][x] ^ newState[currY + yFactor][currX + xFactor];
-					newState[currY + yFactor][currX + xFactor] = newState[y][x] ^ newState[currY + yFactor][currX + xFactor];
-					newState[y][x] = newState[y][x] ^ newState[currY + yFactor][currX + xFactor];
-					futures.insert(pair<PositionsVector, StateVector>({ {x, y}, {currX + xFactor, currY + yFactor}}, newState));
-					// The updated positions argument is now a single array holding the position of
-					// just this thing.
-					vector<array<int, 2>> newPositions = {{currX, currY}};
-					// Get future states (after the jump) and append them to the futures
-					FutureStatesMap secondIteration = getFutureStates(newState, newPositions);
-					// Replace the first element in the keys of the future states with the current state
-					futures.insert(secondIteration.begin(), secondIteration.end());
+				if (newState[newTargety][newTargetx] == '.') {
+					// Perform the jump and update.
+					// recursion will be handled by the game, board need not worry.
+					newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
+					newState[newTargety][newTargetx] = newState[y][x] ^ newState[newTargety][newTargetx];
+					newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
+					futures.insert(pair<PositionsVector, StateVector>({ {x, y}, {newTargetx, newTargety}}, newState));
 				}
 			}
 		}
-		return futures;
 	}
-
-
+	return futures;
 }

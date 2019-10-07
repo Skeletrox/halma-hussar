@@ -21,12 +21,11 @@ int main() {
 				B: Black Piece
 				.: Empty Cell
 	*/
-
 	ifstream inputFile;
 	inputFile.open("./input.txt");
 	StateVector initState;
 	string executionType, s;
-	char team;
+	char team = 'B';
 	float timeLeft = 100.0;
 	int counter = 0;
 	while (inputFile >> s) {
@@ -55,5 +54,23 @@ int main() {
 	for (array<int, 2> pos : playerPositions) {
 		cout << pos[0] << " " << pos[1] << endl;
 	}
+	cout << "-------------------------------------" << endl;
 	Player player = Player(team, playerPositions);
+	FutureStatesMap states = board.getFutureStates(initState, playerPositions);
+	for (FutureStatesMap::iterator s = states.begin(); s != states.end(); s++) {
+		if (isJump(s->first)) {
+			for (array<int, 2> p : s->first) {
+				cout << p[0] << " " << p[1] << " and ";
+			}
+			cout << endl;
+			cout << "Jump" << endl;
+		}
+		else {
+			for (array<int, 2> p : s->first) {
+				cout << p[0] << " " << p[1] << " and ";
+			}
+			cout << endl;
+			cout << "No Jump" << endl;
+		}
+	}
 }

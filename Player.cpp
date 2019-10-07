@@ -17,12 +17,12 @@ std::array<float, 2> Player::getScores() {
 	return returnable;
 }
 
-void Player::setScores(float* scores) {
+void Player::setScores(std::array<float, 2> scores) {
 	scoreArrange = scores[0];
 	scoreCapture = scores[1];
 }
 
-int** Player::makeMove(char **state) {
+int** Player::makeMove(StateVector state) {
 	// Given a state, choose the appropriate movement and get a score
 	// Get all future states for the current state
 	return NULL;
