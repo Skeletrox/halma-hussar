@@ -73,6 +73,8 @@ PositionsVector Board::getBase(char team) {
 	If there is a jump, also consider the next "child" states [can snowball!!!]
 */
 State Board::generateMinMaxTree(State s, int depth, PositionsVector argLocations) {
-	s.setFutureStates(argLocations);
+	std::map<std::array<int, 2>, bool> visited;
+	visited.insert(std::pair<std::array<int, 2>, bool>({}, false));
+	s.setFutureStates(argLocations, depth, visited);
 	return s;
 }

@@ -20,7 +20,7 @@ private:
 
 public:
 	State(StateVector inpState, PositionsVector inPositions, State *inParent, bool root);
-	void setFutureStates(PositionsVector positions);
+	void setFutureStates(PositionsVector positions, int level, std::map<std::array<int, 2>, bool> visited);
 	void setScore(char player, PositionsVector playersBases);
 	float getScore();
 };

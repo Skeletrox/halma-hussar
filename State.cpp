@@ -86,7 +86,10 @@ void State::setScore(char player, PositionsVector playersBases) {
 	score = totalScore;
 }
 
-void State::setFutureStates(PositionsVector positions) {
+void State::setFutureStates(PositionsVector positions, int level, map<array<int, 2>, bool> visited) {
+	if (level == 0) {
+		return;
+	}
 	int numPositions = positions.size();
 	for (int i = 0; i < numPositions; i++) {
 		// The point is expressed as x, y
@@ -129,6 +132,7 @@ void State::setFutureStates(PositionsVector positions) {
 				PositionsVector positionPair = { {x, y}, {currX, currY} };
 				State childState = State(newState, positionPair, this, false);
 				children.push_back(childState);
+				visited.insert(std::pair<std::array<int, 2>, bool>({ currY, currX }, true));
 			}
 			else {
 				/*
@@ -148,13 +152,15 @@ void State::setFutureStates(PositionsVector positions) {
 				}
 				if (newState[newTargety][newTargetx] == '.') {
 					// Perform the jump and update.
-					// recursion will be handled by the game, board need not worry.
 					newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
 					newState[newTargety][newTargetx] = newState[y][x] ^ newState[newTargety][newTargetx];
 					newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
 					PositionsVector positionPair = { {x, y}, {newTargetx, newTargety} };
 					State childState = State(newState, positionPair, this, false);
 					children.push_back(childState);
+					// Use this to get child states so that you can choose the appropriate child later
+					// Only consider the children from this new target point
+					childState.setFutureStates({ {newTargetx, newTargety} }, level - 1, visited);
 				}
 			}
 		}

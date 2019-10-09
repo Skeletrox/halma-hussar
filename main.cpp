@@ -58,10 +58,5 @@ int main() {
 	}
 	cout << "-------------------------------------" << endl;
 	Player player = Player(team, playerPositions);
-	FutureStatesMap states = currState.getFutureStates(playerPositions);
-	for (FutureStatesMap::iterator f = states.begin(); f != states.end(); ++f) {
-		State s = f->second;
-		s.setScore(team, board.getBase(team));
-		cout << s.getScore() << endl;
-	}
+	currState = board.generateMinMaxTree(currState, 10, player.getLocations());
 }
