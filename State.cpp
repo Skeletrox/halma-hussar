@@ -2,10 +2,12 @@
 #include "util.h"
 #include <array>
 
-State::State(StateVector inpState, PositionsVector inPositions, State *inParent) {
+using namespace std;
+
+State::State(StateVector inpState, PositionsVector inPositions, State *inParent, bool root) {
 	state = inpState;
 	positions = inPositions;
-	jump = isJump(positions);
+	jump = !root && isJump(positions);
 	parent = inParent;
 }
 
@@ -14,7 +16,7 @@ float State::getScore() {
 	return score;
 }
 
-void State::setScore(char player, std::map<char, PositionsVector> bases) {
+void State::setScore(char player, PositionsVector playersBases) {
 	// Sets the score for this state
 	/*
 		Given a set of bases, the state returns the appropriate score for this player
@@ -22,7 +24,7 @@ void State::setScore(char player, std::map<char, PositionsVector> bases) {
 			Punish for: Pieces in own base, pieces going everywhere except towards opponent's base
 
 	*/
-	PositionsVector playersBases = bases.at(player);
+	
 	// Get number of pieces of the player in his own base and the number of pieces in the opponent's base
 	float piecesInBase = 0.0, piecesInOpponent = 0.0;
 	for (std::array<int, 2> loc : playersBases) {
@@ -82,4 +84,81 @@ void State::setScore(char player, std::map<char, PositionsVector> bases) {
 	*/
 	float totalScore = piecesInOpponent + directionalScore - piecesInBase;
 	score = totalScore;
+}
+
+FutureStatesMap State::getFutureStates(PositionsVector positions) {
+	FutureStatesMap futures;
+	int numPositions = positions.size();
+	for (int i = 0; i < numPositions; i++) {
+		// The point is expressed as x, y
+		// See if all adjacent points are okay
+		array<int, 2> current = positions[i];
+		int x = current[0];
+		int y = current[1];
+		// Get adjacent positions
+		int xAdjacents[3] = { x - 1, x, x + 1 };
+		int yAdjacents[3] = { y - 1, y, y + 1 };
+		array<array<int, 2>, 8> adjacentCells;
+		int counter = 0;
+		for (int j = 0; j < 3; j++) {
+			for (int k = 0; k < 3; k++) {
+				// Ignore the current cell
+				if (yAdjacents[k] == y && xAdjacents[j] == x) {
+					continue;
+				}
+				// Create a new array for the new points and append that to the adjacent cells
+				array<int, 2> currentAdjacent = { xAdjacents[j], yAdjacents[k] };
+				adjacentCells[counter++] = currentAdjacent;
+			}
+		}
+		// Iterate through the list of all adjacent cells and ensure we return only the acceptable states.
+		for (int j = 0; j < 8; j++) {
+			StateVector newState(state);
+			int currX = adjacentCells[j][0], currY = adjacentCells[j][1];
+			if (currX < 0 || currX > 15 || currY < 0 || currY > 15) {
+				continue;
+			}
+			// Generate the state with the current coin swapped with the void in the other cell
+			// If there is something in that cell, check if it can be jumped over
+			if (newState[currY][currX] == '.') {
+				// This is an empty cell. Swap the position with it and append to the FutureStates vector.
+
+				//XOR swapping
+				newState[y][x] = newState[y][x] ^ newState[currY][currX];
+				newState[currY][currX] = newState[y][x] ^ newState[currY][currX];
+				newState[y][x] = newState[y][x] ^ newState[currY][currX];
+				PositionsVector positionPair = { {x, y}, {currX, currY} };
+				State childState = State(newState, positionPair, this, false);
+				futures.insert(pair<PositionsVector, State>(positionPair, childState));
+			}
+			else {
+				/*
+					Extend our search
+					Convert a boolean into a step function
+					If x < currX, to get to the adjacent cell, add 1 to it.
+					If x == currX, then don't modify the x value.
+					If x > currX, to get to the adjacent cell, subtract 1 from it.
+					Do the same for y.
+				*/
+				int xFactor = int(x <= currX) - int(x == currX) - int(x > currX);
+				int yFactor = int(y <= currY) - int(y == currY) - int(y > currY);
+				// Check the next value, while ensuring that it is accessible
+				int newTargetx = currX + xFactor, newTargety = currY + yFactor;
+				if (newTargetx < 0 || newTargetx > 15 || newTargety < 0 || newTargety > 15) {
+					continue;
+				}
+				if (newState[newTargety][newTargetx] == '.') {
+					// Perform the jump and update.
+					// recursion will be handled by the game, board need not worry.
+					newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
+					newState[newTargety][newTargetx] = newState[y][x] ^ newState[newTargety][newTargetx];
+					newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
+					PositionsVector positionPair = { {x, y}, {newTargetx, newTargety} };
+					State childState = State(newState, positionPair, this, false);
+					futures.insert(pair<PositionsVector, State>(positionPair, childState));
+				}
+			}
+		}
+	}
+	return futures;
 }

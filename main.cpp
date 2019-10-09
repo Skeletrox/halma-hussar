@@ -5,6 +5,7 @@
 #include "components.h"
 #include "Board.h"
 #include "Player.h"
+#include "State.h"
 #include "util.h"
 
 using namespace std;
@@ -50,12 +51,17 @@ int main() {
 		counter++;
 	}
 	Board board = Board(initState);
+	State currState = State(initState, { {} }, NULL, true);
 	PositionsVector playerPositions = getPositions(initState, team);
 	for (array<int, 2> pos : playerPositions) {
 		cout << pos[0] << " " << pos[1] << endl;
 	}
 	cout << "-------------------------------------" << endl;
 	Player player = Player(team, playerPositions);
-	FutureStatesMap states = board.getFutureStates(initState, playerPositions);
-	
+	FutureStatesMap states = currState.getFutureStates(playerPositions);
+	for (FutureStatesMap::iterator f = states.begin(); f != states.end(); ++f) {
+		State s = f->second;
+		s.setScore(team, board.getBase(team));
+		cout << s.getScore() << endl;
+	}
 }

@@ -2,6 +2,8 @@
 #include <iostream>
 #include "components.h"
 
+#define FutureStatesMap std::map<PositionsVector, State>
+
 /*
 	Stores a board state with the following values:
 		1. The state of the board
@@ -20,8 +22,9 @@ private:
 	float score;
 
 public:
-	State(StateVector inpState, PositionsVector inPositions, State *inParent);
-	void setScore(char player, std::map<char, PositionsVector> bases);
+	State(StateVector inpState, PositionsVector inPositions, State *inParent, bool root);
+	FutureStatesMap getFutureStates(PositionsVector positions);
+	void setScore(char player, PositionsVector playersBases);
 	float getScore();
 };
 
