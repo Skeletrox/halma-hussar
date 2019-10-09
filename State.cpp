@@ -128,7 +128,6 @@ void State::setFutureStates(PositionsVector positions) {
 				newState[y][x] = newState[y][x] ^ newState[currY][currX];
 				PositionsVector positionPair = { {x, y}, {currX, currY} };
 				State childState = State(newState, positionPair, this, false);
-				futures.insert(pair<PositionsVector, State>(positionPair, childState));
 				children.push_back(childState);
 			}
 			else {
@@ -155,11 +154,9 @@ void State::setFutureStates(PositionsVector positions) {
 					newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
 					PositionsVector positionPair = { {x, y}, {newTargetx, newTargety} };
 					State childState = State(newState, positionPair, this, false);
-					futures.insert(pair<PositionsVector, State>(positionPair, childState));
 					children.push_back(childState);
 				}
 			}
 		}
 	}
-	return futures;
 }
