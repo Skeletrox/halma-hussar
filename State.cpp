@@ -166,3 +166,11 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 		}
 	}
 }
+
+StateVector State::getState() {
+	return state;
+}
+
+std::vector<State> State::getChildren() {
+	return children;
+}

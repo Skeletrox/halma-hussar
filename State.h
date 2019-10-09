@@ -22,6 +22,8 @@ public:
 	State(StateVector inpState, PositionsVector inPositions, State *inParent, bool root);
 	void setFutureStates(PositionsVector positions, int level, std::map<std::array<int, 2>, bool> visited);
 	void setScore(char player, PositionsVector playersBases);
+	StateVector getState();
+	std::vector<State> getChildren();
 	float getScore();
 };
 
