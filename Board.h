@@ -8,6 +8,7 @@ private:
 
 public:
 	Board(StateVector inpState);
-	FutureStatesMap getFutureStates(StateVector state, PositionsVector positions);
+	
+	PositionsVector getBase(char team);
 };
 
