@@ -57,20 +57,5 @@ int main() {
 	cout << "-------------------------------------" << endl;
 	Player player = Player(team, playerPositions);
 	FutureStatesMap states = board.getFutureStates(initState, playerPositions);
-	for (FutureStatesMap::iterator s = states.begin(); s != states.end(); s++) {
-		if (isJump(s->first)) {
-			for (array<int, 2> p : s->first) {
-				cout << p[0] << " " << p[1] << " and ";
-			}
-			cout << endl;
-			cout << "Jump" << endl;
-		}
-		else {
-			for (array<int, 2> p : s->first) {
-				cout << p[0] << " " << p[1] << " and ";
-			}
-			cout << endl;
-			cout << "No Jump" << endl;
-		}
-	}
+	
 }

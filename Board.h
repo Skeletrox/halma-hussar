@@ -1,8 +1,5 @@
 #pragma once
-#include <vector>
 #include "components.h"
-
-using namespace std;
 
 class Board {
 private:
