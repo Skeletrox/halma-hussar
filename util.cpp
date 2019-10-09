@@ -23,3 +23,9 @@ PositionsVector getPositions(StateVector boardState, char team) {
 bool isJump(PositionsVector positions) {
 	return (abs(positions[0][0] - positions[1][0]) > 1 || abs(positions[0][1] - positions[1][1]) > 1);
 }
+
+// Utility function, defined as the distance from (x, y) to y = x
+float utility(int x, int y) {
+	float numerator = float(x) - float(y);
+	return ( numerator / sqrt(x * x + y * y));
+}

@@ -17,11 +17,11 @@ private:
 	bool jump;
 	State *parent;
 	std::vector<State> children;
-	std::array<float, 2> score;
+	float score;
 
 public:
 	State(StateVector inpState, PositionsVector inPositions, State *inParent);
 	void setScore(char player, std::map<char, PositionsVector> bases);
-	std::array<float, 2> getScore();
+	float getScore();
 };
 
