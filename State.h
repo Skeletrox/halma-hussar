@@ -1,13 +1,10 @@
 #pragma once
 #include <iostream>
 #include "components.h"
-
-#define FutureStatesMap std::map<PositionsVector, State>
-
 /*
 	Stores a board state with the following values:
 		1. The state of the board
-		2. The appropriate move made to get the positions
+		2. The appropriate move made to get the current state
 		3. Is this a jump?
 		4. Score
 */
@@ -23,7 +20,7 @@ private:
 
 public:
 	State(StateVector inpState, PositionsVector inPositions, State *inParent, bool root);
-	FutureStatesMap getFutureStates(PositionsVector positions);
+	void setFutureStates(PositionsVector positions, int level, std::map<std::array<int, 2>, bool> visited);
 	void setScore(char player, PositionsVector playersBases);
 	float getScore();
 };
