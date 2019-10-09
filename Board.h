@@ -1,5 +1,6 @@
 #pragma once
 #include "components.h"
+#include "State.h"
 
 class Board {
 private:
@@ -8,7 +9,7 @@ private:
 
 public:
 	Board(StateVector inpState);
-	
 	PositionsVector getBase(char team);
+	State generateMinMaxTree(State s, int depth);
 };
 

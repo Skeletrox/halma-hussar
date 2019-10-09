@@ -3,8 +3,7 @@
 
 Player::Player(char argTeam, PositionsVector argLocations) {
 	team = argTeam;
-	scoreArrange = 0;
-	scoreCapture = 0;
+	score = 0;
 	locations = argLocations;
 }
 
@@ -12,14 +11,8 @@ char Player::getTeam() {
 	return team;
 }
 
-std::array<float, 2> Player::getScores() {
-	std::array<float, 2> returnable = { scoreArrange, scoreCapture };
-	return returnable;
-}
-
-void Player::setScores(std::array<float, 2> scores) {
-	scoreArrange = scores[0];
-	scoreCapture = scores[1];
+float Player::getScore() {
+	return score;
 }
 
 int** Player::makeMove(StateVector state) {

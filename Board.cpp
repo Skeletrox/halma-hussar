@@ -66,3 +66,11 @@ Board::Board(StateVector inpState) {
 PositionsVector Board::getBase(char team) {
 	return (team == 'B' ? blackBase : whiteBase);
 }
+
+
+/*
+	Take the first state s, generate its children and their children and so on until "depth" times
+*/
+State Board::generateMinMaxTree(State s, int depth) {
+	
+}
