@@ -86,8 +86,7 @@ void State::setScore(char player, PositionsVector playersBases) {
 	score = totalScore;
 }
 
-FutureStatesMap State::getFutureStates(PositionsVector positions) {
-	FutureStatesMap futures;
+void State::setFutureStates(PositionsVector positions) {
 	int numPositions = positions.size();
 	for (int i = 0; i < numPositions; i++) {
 		// The point is expressed as x, y
@@ -130,6 +129,7 @@ FutureStatesMap State::getFutureStates(PositionsVector positions) {
 				PositionsVector positionPair = { {x, y}, {currX, currY} };
 				State childState = State(newState, positionPair, this, false);
 				futures.insert(pair<PositionsVector, State>(positionPair, childState));
+				children.push_back(childState);
 			}
 			else {
 				/*
@@ -156,6 +156,7 @@ FutureStatesMap State::getFutureStates(PositionsVector positions) {
 					PositionsVector positionPair = { {x, y}, {newTargetx, newTargety} };
 					State childState = State(newState, positionPair, this, false);
 					futures.insert(pair<PositionsVector, State>(positionPair, childState));
+					children.push_back(childState);
 				}
 			}
 		}
