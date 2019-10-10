@@ -94,6 +94,7 @@ State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, Posi
 	PositionsVector opponentPositions = getPositions(parent.getState(), opponentTeam);
 	for (State child : parent.getChildren()) {
 		child = generateMinMaxTree(child, jumpDepth, turnCount - 1, opponentPositions);
+		child.setScore(team, getBase(team));
 	}
 	return parent;
 }
