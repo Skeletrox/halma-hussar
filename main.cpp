@@ -58,5 +58,6 @@ int main() {
 	}
 	cout << "-------------------------------------" << endl;
 	Player player = Player(team, playerPositions);
-	currState = board.generateMinMaxTree(currState, 10, player.getLocations());
+	int numTurns = 2, playerDepth = 7;
+	currState = board.generateMinMaxTree(currState, playerDepth, numTurns, player.getLocations());
 }

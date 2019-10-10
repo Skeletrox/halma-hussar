@@ -117,7 +117,7 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 		for (int j = 0; j < 8; j++) {
 			StateVector newState(state);
 			int currX = adjacentCells[j][0], currY = adjacentCells[j][1];
-			if (currX < 0 || currX > 15 || currY < 0 || currY > 15) {
+			if (visited.count({ currX, currY }) > 0 || currX < 0 || currX > 15 || currY < 0 || currY > 15) {
 				continue;
 			}
 			// Generate the state with the current coin swapped with the void in the other cell
@@ -147,7 +147,7 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 				int yFactor = int(y <= currY) - int(y == currY) - int(y > currY);
 				// Check the next value, while ensuring that it is accessible
 				int newTargetx = currX + xFactor, newTargety = currY + yFactor;
-				if (newTargetx < 0 || newTargetx > 15 || newTargety < 0 || newTargety > 15) {
+				if (visited.count({ newTargetx, newTargety }) || newTargetx < 0 || newTargetx > 15 || newTargety < 0 || newTargety > 15) {
 					continue;
 				}
 				if (newState[newTargety][newTargetx] == '.') {
@@ -165,4 +165,12 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 			}
 		}
 	}
+}
+
+StateVector State::getState() {
+	return state;
+}
+
+std::vector<State> State::getChildren() {
+	return children;
 }

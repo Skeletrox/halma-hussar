@@ -1,4 +1,5 @@
 #include "Board.h"
+#include "util.h"
 #include <vector>
 #include <array>
 #include <iostream>
@@ -71,10 +72,29 @@ PositionsVector Board::getBase(char team) {
 /*
 	Take the first state s, generate its children and their children and so on until "depth" times
 	If there is a jump, also consider the next "child" states [can snowball!!!]
+	Handle snowballing by using "jumpdepth", i.e. only jump x no. of times
 */
-State Board::generateMinMaxTree(State s, int depth, PositionsVector argLocations) {
+State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, PositionsVector argLocations) {
+
+	// All out of moves
+	if (turnCount == 0) {
+		return parent;
+	}
+
 	std::map<std::array<int, 2>, bool> visited;
 	visited.insert(std::pair<std::array<int, 2>, bool>({}, false));
-	s.setFutureStates(argLocations, depth, visited);
-	return s;
+	parent.setFutureStates(argLocations, jumpDepth, visited);
+	/*
+		Get the opponent's locations how?
+			Given your pieces, calculate the appropriate PositionsVector for the other player?
+			Get the symbol in argLocations[0][0], then get the appropriate PositionVector of the other team?
+	*/
+	char team = parent.getState()[argLocations[0][1]][argLocations[0][0]];
+	char opponentTeam = team == 'B' ? 'W' : 'B';
+	PositionsVector opponentPositions = getPositions(parent.getState(), opponentTeam);
+	for (State child : parent.getChildren()) {
+		child = generateMinMaxTree(child, jumpDepth, turnCount - 1, opponentPositions);
+		child.setScore(team, getBase(team));
+	}
+	return parent;
 }
