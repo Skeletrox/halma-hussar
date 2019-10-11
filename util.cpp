@@ -86,3 +86,13 @@ float doMinValue(State* state, float alpha, float beta) {
 	}
 	return v;
 }
+
+void printState(State s) {
+	std::vector<std::vector<char>> state = s.getState();
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 16; j++) {
+			std::cout << state[i][j];
+		}
+		std::cout << std::endl;
+	}
+}

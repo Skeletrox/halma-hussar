@@ -100,26 +100,27 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 		// Get adjacent positions
 		int xAdjacents[3] = { x - 1, x, x + 1 };
 		int yAdjacents[3] = { y - 1, y, y + 1 };
-		array<array<int, 2>, 8> adjacentCells;
-		int counter = 0;
+
+		// Initialize the adjacent cells vector
+		vector<array<int, 2>> adjacentCells;
+
+		// counter to handle only 8 points being chosen instead of 9
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
-				// Ignore the current cell
-				if (yAdjacents[k] == y && xAdjacents[j] == x) {
+				int xNow = xAdjacents[j], yNow = yAdjacents[k];
+				// Ignore the current cell, out of bounds, and visited cells
+				if ((xNow > 15) || (xNow < 0) || (yNow > 15) || (yNow < 0) || visited.count({ xNow, yNow }) > 0 || (yNow == y && xNow == x)) {
 					continue;
 				}
 				// Create a new array for the new points and append that to the adjacent cells
-				array<int, 2> currentAdjacent = { xAdjacents[j], yAdjacents[k] };
-				adjacentCells[counter++] = currentAdjacent;
+				array<int, 2> currentAdjacent = { xNow, yNow };
+				adjacentCells.push_back(currentAdjacent);
 			}
 		}
 		// Iterate through the list of all adjacent cells and ensure we return only the acceptable states.
-		for (int j = 0; j < 8; j++) {
+		for (int j = 0; j < adjacentCells.size(); j++) {
 			StateVector newState(state);
 			int currX = adjacentCells[j][0], currY = adjacentCells[j][1];
-			if (visited.count({ currX, currY }) > 0 || currX < 0 || currX > 15 || currY < 0 || currY > 15) {
-				continue;
-			}
 			// Generate the state with the current coin swapped with the void in the other cell
 			// If there is something in that cell, check if it can be jumped over
 			if (newState[currY][currX] == '.') {
@@ -150,7 +151,7 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 				int yFactor = int(y <= currY) - int(y == currY) - int(y > currY);
 				// Check the next value, while ensuring that it is accessible
 				int newTargetx = currX + xFactor, newTargety = currY + yFactor;
-				if (visited.count({ newTargetx, newTargety }) || newTargetx < 0 || newTargetx > 15 || newTargety < 0 || newTargety > 15) {
+				if ((newTargetx > 15) || (newTargetx < 0) || (newTargety > 15) || (newTargety < 0) || visited.count({ newTargetx, newTargety }) > 0 || (newTargety == y &&  newTargetx == x)) {
 					continue;
 				}
 				if (newState[newTargety][newTargetx] == '.') {
@@ -196,4 +197,12 @@ void State::setAlphaBetaPrediction(float value) {
 
 void State::setChildren(std::vector<State> argChildren) {
 	children = argChildren;
+}
+
+int State::getDesiredChildLoc() {
+	return desiredChildLoc;
+}
+
+PositionsVector State::getPositions() {
+	return positions;
 }

@@ -53,12 +53,8 @@ int main() {
 	Board board = Board(initState);
 	State currState = State(initState, { {} }, NULL, true);
 	PositionsVector playerPositions = getPositions(initState, team);
-	for (array<int, 2> pos : playerPositions) {
-		cout << pos[0] << " " << pos[1] << endl;
-	}
-	cout << "-------------------------------------" << endl;
 	Player player = Player(team, playerPositions);
-	int numTurns = 2, playerDepth = 4;
+	int numTurns = 3, playerDepth = 4;
 	/*
 		Generate the minmax tree with the following attributes:
 			The current State
@@ -69,10 +65,52 @@ int main() {
 	*/
 	currState = board.generateMinMaxTree(currState, playerDepth, numTurns, player.getLocations(), FLT_MIN, FLT_MAX, true);
 	cout << currState.getAlphaBetaPrediction() <<  "    " << currState.getScore() << endl;
+	/*
 	for (State c : currState.getChildren()) {
 		cout << endl << c.getAlphaBetaPrediction() << "    " << c.getScore() << endl;
+		cout << c.getChildren().size() << endl;
 		for (State c2 : c.getChildren()) {
-			cout << "    " << c2.getAlphaBetaPrediction() << " and " << c2.getScore();
+			cout << &c2<< "    " << c2.getAlphaBetaPrediction() << " and " << c2.getScore() <<  " " << endl;
+			for (int i = 0; i < 16; i++) {
+				for (int j = 0; j < 16; j++) {
+					cout << c2.getState()[i][j];
+				}
+				cout << endl;
+			}
+			cout << endl << endl;
 		}
 	}
+	*/
+	State desiredChild1 = currState.getDesiredChild();
+	State desiredChild2 = desiredChild1.getDesiredChild();
+
+	cout << "First move desired child number " << currState.getDesiredChildLoc() << endl;
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 16; j++) {
+			cout << desiredChild1.getState()[i][j];
+		}
+		cout << endl;
+	}
+	cout << endl << endl;
+
+	cout << "Second move desired child number " << desiredChild1.getDesiredChildLoc() << endl;
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 16; j++) {
+			cout << desiredChild2.getState()[i][j];
+		}
+		cout << endl;
+	}
+	cout << endl << endl;
+
+	cout << "Move is " << endl;
+	PositionsVector move = desiredChild1.getPositions();
+	if (isJump(move)) {
+		cout << "J ";
+	} else {
+		cout << "E ";
+	}
+	for (array<int, 2> m : move) {
+		cout << m[0] << "," << m[1] << " ";
+	}
+	cout << endl;
 }

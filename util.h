@@ -14,3 +14,5 @@ State* doAlphaBetaPruning(State *root);
 
 float doMinValue(State* state, float alpha, float beta);
 float doMaxValue(State* state, float alpha, float beta);
+
+void printState(State s);

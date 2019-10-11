@@ -77,9 +77,11 @@ PositionsVector Board::getBase(char team) {
 	This implies that for a depth of 3 moves, you look at 7 million moves. Use alpha beta pruning?
 */
 State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, PositionsVector argLocations, float alpha, float beta, bool isMax) {
-
+	
 	std::map<std::array<int, 2>, bool> visited;
 	visited.insert(std::pair<std::array<int, 2>, bool>({}, false));
+
+	// Create all the child states of this parent
 	parent.setFutureStates(argLocations, jumpDepth, visited);
 	/*
 		Get the opponent's locations how?
@@ -90,9 +92,12 @@ State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, Posi
 	char team = parent.getState()[argLocations[0][1]][argLocations[0][0]];
 	char opponentTeam = team == 'B' ? 'W' : 'B';
 	PositionsVector opponentPositions = getPositions(parent.getState(), opponentTeam);
-
 	// If we have reached the depth then we shall return the utility of this board
 	if (turnCount == 0) {
+		/*
+			If isMax is true, then the player is the one making the terminal move, else it's the other player
+			We need to get the utility only for the terminal player
+		*/
 		parent.setScore(team, isMax ? argLocations : opponentPositions);
 		parent.setAlphaBetaPrediction(parent.getScore());
 		return parent;
@@ -103,11 +108,22 @@ State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, Posi
 	// Get all the children
 	std::vector<State> children = parent.getChildren();
 	for (int i = 0; i < children.size(); i++) {
-		children[i] = generateMinMaxTree(children[i], jumpDepth, turnCount - 1, argLocations, alpha, beta, !isMax);
-		v = isMax ? max(v, children[i].getAlphaBetaPrediction()) : min(v, children[i].getAlphaBetaPrediction());
-		if ((isMax && v >= beta) || (!isMax && v <= alpha)) {
-			parent.setAlphaBetaPrediction(v);
-			return parent;
+		children[i] = generateMinMaxTree(children[i], jumpDepth, turnCount - 1, opponentPositions, alpha, beta, !isMax);
+		float result = children[i].getAlphaBetaPrediction();
+		/*
+				Some properties:
+					If isMax is false, then this is a min expander
+					Alpha is always less that Beta
+					For a maxNode, v being larger than beta implies that the parent is NOT going to choose this
+					For a minNode, v being less than alpha implies the same
+		*/
+		if ((isMax && result > v) || (!isMax && result < v)) {
+				parent.setDesiredChildLoc(i);
+				v = result;
+		}
+		if ((isMax && v >= beta) || (!isMax && result <= alpha)) {
+				parent.setAlphaBetaPrediction(v);
+				return parent;
 		}
 		if (isMax) {
 			alpha = max(alpha, v);

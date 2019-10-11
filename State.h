@@ -26,6 +26,7 @@ public:
 	void setFutureStates(PositionsVector positions, int level, std::map<std::array<int, 2>, bool> visited);
 	State getDesiredChild();
 	void setDesiredChildLoc(int i);
+	int getDesiredChildLoc();
 	void setChildren(std::vector<State> argChildren);
 
 	// Getter and setter for score and alphaBetaPrediction
@@ -36,6 +37,7 @@ public:
 
 	// Getter for state
 	StateVector getState();
+	PositionsVector getPositions();
 	
 };
 
