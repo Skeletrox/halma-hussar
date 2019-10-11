@@ -53,11 +53,46 @@ int main() {
 	Board board = Board(initState);
 	State currState = State(initState, { {} }, NULL, true);
 	PositionsVector playerPositions = getPositions(initState, team);
-	for (array<int, 2> pos : playerPositions) {
-		cout << pos[0] << " " << pos[1] << endl;
-	}
-	cout << "-------------------------------------" << endl;
 	Player player = Player(team, playerPositions);
-	int numTurns = 2, playerDepth = 7;
-	currState = board.generateMinMaxTree(currState, playerDepth, numTurns, player.getLocations());
+	int numTurns = 2, playerDepth = 5;
+	/*
+		Generate the minmax tree with the following attributes:
+			The current State
+			How deep can the player jump
+			The number of turns
+			The locations of the player's points
+			Alpha and Beta [For Alpha-Beta Pruning]
+	*/
+	currState = board.generateMinMaxTree(currState, playerDepth, numTurns, player.getLocations(), FLT_MIN, FLT_MAX, true);
+	cout << currState.getAlphaBetaPrediction() <<  "    " << currState.getScore() << endl;
+	/*
+	for (State c : currState.getChildren()) {
+		cout << endl << c.getAlphaBetaPrediction() << "    " << c.getScore() << endl;
+		cout << c.getChildren().size() << endl;
+		for (State c2 : c.getChildren()) {
+			cout << &c2<< "    " << c2.getAlphaBetaPrediction() << " and " << c2.getScore() <<  " " << endl;
+			for (int i = 0; i < 16; i++) {
+				for (int j = 0; j < 16; j++) {
+					cout << c2.getState()[i][j];
+				}
+				cout << endl;
+			}
+			cout << endl << endl;
+		}
+	}
+	*/
+	State desiredChild = currState.getDesiredChild();
+	string result;
+	PositionsVector move = desiredChild.getPositions();
+	result.append(isJump(move) ? "J " : "E ");
+	for (array<int, 2> m : move) {
+		char *currstring = (char*) malloc(40);
+		sprintf_s(currstring, 40, "%d,%d ", m[0], m[1]);
+		result.append(currstring);
+	}
+	char* immutableResult = (char*)malloc(result.size());
+	ofstream outFile;
+	outFile.open("./output.txt");
+	outFile << result;
+	outFile.close();
 }

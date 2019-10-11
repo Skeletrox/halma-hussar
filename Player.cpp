@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "State.h"
 #include <array>
 
 Player::Player(char argTeam, PositionsVector argLocations) {
@@ -15,13 +16,16 @@ float Player::getScore() {
 	return score;
 }
 
-int** Player::makeMove(StateVector state) {
+PositionsVector Player::makeMove(StateVector state) {
+	PositionsVector p;
 	// Given a state, choose the appropriate movement and get a score
 	// Get all future states for the current state
-	return NULL;
+	return p;
 }
 
 PositionsVector Player::getLocations() {
 	return locations;
 }
+
+
 

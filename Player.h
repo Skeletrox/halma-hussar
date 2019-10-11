@@ -31,7 +31,5 @@ public:
 	// Gets locations of all pieces of player
 	PositionsVector getLocations();
 	// Given a board state, chooses best possible move, returning a 2x2 matrix of [src, dest]
-	int** makeMove(StateVector state);
-	
-
+	PositionsVector makeMove(StateVector state);
 };
