@@ -90,16 +90,20 @@ State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, Posi
 	char team = parent.getState()[argLocations[0][1]][argLocations[0][0]];
 	char opponentTeam = team == 'B' ? 'W' : 'B';
 	PositionsVector opponentPositions = getPositions(parent.getState(), opponentTeam);
-	// The player's goal is to maximize HIS score.
+
+	// If we have reached the depth then we shall return the utility of this board
 	if (turnCount == 0) {
-		parent.setScore(team, argLocations);
+		parent.setScore(team, isMax ? argLocations : opponentPositions);
 		parent.setAlphaBetaPrediction(parent.getScore());
 		return parent;
 	}
-	float v = FLT_MIN;
+	// If the node is a MAX expander, set the value to -inf, else set it to inf
+	float v = isMax ? FLT_MIN : FLT_MAX;
+
+	// Get all the children
 	std::vector<State> children = parent.getChildren();
 	for (int i = 0; i < children.size(); i++) {
-		children[i] = generateMinMaxTree(children[i], jumpDepth, turnCount - 1, opponentPositions, alpha, beta, !isMax);
+		children[i] = generateMinMaxTree(children[i], jumpDepth, turnCount - 1, argLocations, alpha, beta, !isMax);
 		v = isMax ? max(v, children[i].getAlphaBetaPrediction()) : min(v, children[i].getAlphaBetaPrediction());
 		if ((isMax && v >= beta) || (!isMax && v <= alpha)) {
 			parent.setAlphaBetaPrediction(v);
@@ -110,8 +114,8 @@ State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, Posi
 		} else {
 			beta = min(beta, v);
 		}
-		
 	}
+	parent.setChildren(children);
 	parent.setAlphaBetaPrediction(v);
 	return parent;
 }

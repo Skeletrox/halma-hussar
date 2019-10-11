@@ -41,7 +41,7 @@ void State::setScore(char player, PositionsVector playersBases) {
 	/* 
 		Get the closeness of the points from their "target" destinations, i.e. their appropriate goals
 		The most efficient result happens when the pieces move in like a phalanx
-		Get the relativve superimposition of pieces with the region y = x + 4 and y = x - 4.
+		Get the relativity of superimposition of pieces with the region y = x + 4 and y = x - 4.
 		If all pieces are in this region then the score is 1, else reduce using distance of the point from y = x
 	*/
 
@@ -129,12 +129,15 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 				newState[y][x] = newState[y][x] ^ newState[currY][currX];
 				newState[currY][currX] = newState[y][x] ^ newState[currY][currX];
 				newState[y][x] = newState[y][x] ^ newState[currY][currX];
+
+				// Create a child state object
 				PositionsVector positionPair = { {x, y}, {currX, currY} };
 				State childState = State(newState, positionPair, this, false);
 				children.push_back(childState);
+
+				// Add the current child to visited so that we don't try to go here again
 				visited.insert(std::pair<std::array<int, 2>, bool>({ currY, currX }, true));
-			}
-			else {
+			} else {
 				/*
 					Extend our search
 					Convert a boolean into a step function
@@ -175,12 +178,12 @@ std::vector<State> State::getChildren() {
 	return children;
 }
 
-State* State::getDesiredChild() {
-	return desiredChild;
+State State::getDesiredChild() {
+	return getChildren()[desiredChildLoc];
 }
 
-void State::setDesiredChild(State* child) {
-	desiredChild = child;
+void State::setDesiredChildLoc(int i) {
+	desiredChildLoc = i;
 }
 
 float State::getAlphaBetaPrediction() {
@@ -189,4 +192,8 @@ float State::getAlphaBetaPrediction() {
 
 void State::setAlphaBetaPrediction(float value) {
 	alphaBetaPrediction = value;
+}
+
+void State::setChildren(std::vector<State> argChildren) {
+	children = argChildren;
 }

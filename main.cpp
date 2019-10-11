@@ -58,7 +58,7 @@ int main() {
 	}
 	cout << "-------------------------------------" << endl;
 	Player player = Player(team, playerPositions);
-	int numTurns = 3, playerDepth = 4;
+	int numTurns = 2, playerDepth = 4;
 	/*
 		Generate the minmax tree with the following attributes:
 			The current State
@@ -68,5 +68,11 @@ int main() {
 			Alpha and Beta [For Alpha-Beta Pruning]
 	*/
 	currState = board.generateMinMaxTree(currState, playerDepth, numTurns, player.getLocations(), FLT_MIN, FLT_MAX, true);
-	cout << currState.getAlphaBetaPrediction() << endl;
+	cout << currState.getAlphaBetaPrediction() <<  "    " << currState.getScore() << endl;
+	for (State c : currState.getChildren()) {
+		cout << endl << c.getAlphaBetaPrediction() << "    " << c.getScore() << endl;
+		for (State c2 : c.getChildren()) {
+			cout << "    " << c2.getAlphaBetaPrediction() << " and " << c2.getScore();
+		}
+	}
 }
