@@ -72,14 +72,11 @@ PositionsVector Board::getBase(char team) {
 /*
 	Take the first state s, generate its children and their children and so on until "depth" times
 	If there is a jump, also consider the next "child" states [can snowball!!!]
-	Handle snowballing by using "jumpdepth", i.e. only jump x no. of times
+	Handle snowballing by using visited.
+	However, for each piece, there are upto 8, implying upto 152 moves per level, not counting jumps
+	This implies that for a depth of 3 moves, you look at 7 million moves. Use alpha beta pruning?
 */
-State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, PositionsVector argLocations) {
-
-	// All out of moves
-	if (turnCount == 0) {
-		return parent;
-	}
+State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, PositionsVector argLocations, float alpha, float beta, bool isMax) {
 
 	std::map<std::array<int, 2>, bool> visited;
 	visited.insert(std::pair<std::array<int, 2>, bool>({}, false));
@@ -88,13 +85,33 @@ State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, Posi
 		Get the opponent's locations how?
 			Given your pieces, calculate the appropriate PositionsVector for the other player?
 			Get the symbol in argLocations[0][0], then get the appropriate PositionVector of the other team?
+			Also try to incorporate Alpha Beta Pruning here itself to avoid unnecessary expansion
 	*/
 	char team = parent.getState()[argLocations[0][1]][argLocations[0][0]];
 	char opponentTeam = team == 'B' ? 'W' : 'B';
 	PositionsVector opponentPositions = getPositions(parent.getState(), opponentTeam);
-	for (State child : parent.getChildren()) {
-		child = generateMinMaxTree(child, jumpDepth, turnCount - 1, opponentPositions);
-		child.setScore(team, getBase(team));
+	// The player's goal is to maximize HIS score.
+	if (turnCount == 0) {
+		parent.setScore(team, argLocations);
+		parent.setAlphaBetaPrediction(parent.getScore());
+		return parent;
 	}
+	float v = FLT_MIN;
+	std::vector<State> children = parent.getChildren();
+	for (int i = 0; i < children.size(); i++) {
+		children[i] = generateMinMaxTree(children[i], jumpDepth, turnCount - 1, opponentPositions, alpha, beta, !isMax);
+		v = isMax ? max(v, children[i].getAlphaBetaPrediction()) : min(v, children[i].getAlphaBetaPrediction());
+		if ((isMax && v >= beta) || (!isMax && v <= alpha)) {
+			parent.setAlphaBetaPrediction(v);
+			return parent;
+		}
+		if (isMax) {
+			alpha = max(alpha, v);
+		} else {
+			beta = min(beta, v);
+		}
+		
+	}
+	parent.setAlphaBetaPrediction(v);
 	return parent;
 }

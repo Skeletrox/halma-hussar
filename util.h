@@ -7,6 +7,8 @@ PositionsVector getPositions(StateVector boardState, char team);
 bool isJump(PositionsVector positions);
 
 float utility(int x, int y);
+float max(float a, float b);
+float min(float a, float b);
 
 State* doAlphaBetaPruning(State *root);
 

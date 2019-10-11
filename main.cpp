@@ -59,5 +59,14 @@ int main() {
 	cout << "-------------------------------------" << endl;
 	Player player = Player(team, playerPositions);
 	int numTurns = 3, playerDepth = 4;
-	currState = board.generateMinMaxTree(currState, playerDepth, numTurns, player.getLocations());
+	/*
+		Generate the minmax tree with the following attributes:
+			The current State
+			How deep can the player jump
+			The number of turns
+			The locations of the player's points
+			Alpha and Beta [For Alpha-Beta Pruning]
+	*/
+	currState = board.generateMinMaxTree(currState, playerDepth, numTurns, player.getLocations(), FLT_MIN, FLT_MAX, true);
+	cout << currState.getAlphaBetaPrediction() << endl;
 }
