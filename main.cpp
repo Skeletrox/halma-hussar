@@ -54,7 +54,7 @@ int main() {
 	State currState = State(initState, { {} }, NULL, true);
 	PositionsVector playerPositions = getPositions(initState, team);
 	Player player = Player(team, playerPositions);
-	int numTurns = 3, playerDepth = 4;
+	int numTurns = 2, playerDepth = 5;
 	/*
 		Generate the minmax tree with the following attributes:
 			The current State
@@ -81,36 +81,18 @@ int main() {
 		}
 	}
 	*/
-	State desiredChild1 = currState.getDesiredChild();
-	State desiredChild2 = desiredChild1.getDesiredChild();
-
-	cout << "First move desired child number " << currState.getDesiredChildLoc() << endl;
-	for (int i = 0; i < 16; i++) {
-		for (int j = 0; j < 16; j++) {
-			cout << desiredChild1.getState()[i][j];
-		}
-		cout << endl;
-	}
-	cout << endl << endl;
-
-	cout << "Second move desired child number " << desiredChild1.getDesiredChildLoc() << endl;
-	for (int i = 0; i < 16; i++) {
-		for (int j = 0; j < 16; j++) {
-			cout << desiredChild2.getState()[i][j];
-		}
-		cout << endl;
-	}
-	cout << endl << endl;
-
-	cout << "Move is " << endl;
-	PositionsVector move = desiredChild1.getPositions();
-	if (isJump(move)) {
-		cout << "J ";
-	} else {
-		cout << "E ";
-	}
+	State desiredChild = currState.getDesiredChild();
+	string result;
+	PositionsVector move = desiredChild.getPositions();
+	result.append(isJump(move) ? "J " : "E ");
 	for (array<int, 2> m : move) {
-		cout << m[0] << "," << m[1] << " ";
+		char *currstring = (char*) malloc(40);
+		sprintf_s(currstring, 40, "%d,%d ", m[0], m[1]);
+		result.append(currstring);
 	}
-	cout << endl;
+	char* immutableResult = (char*)malloc(result.size());
+	ofstream outFile;
+	outFile.open("./output.txt");
+	outFile << result;
+	outFile.close();
 }
