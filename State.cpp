@@ -174,3 +174,19 @@ StateVector State::getState() {
 std::vector<State> State::getChildren() {
 	return children;
 }
+
+State* State::getDesiredChild() {
+	return desiredChild;
+}
+
+void State::setDesiredChild(State* child) {
+	desiredChild = child;
+}
+
+float State::getAlphaBetaPrediction() {
+	return alphaBetaPrediction;
+}
+
+void State::setAlphaBetaPrediction(float value) {
+	alphaBetaPrediction = value;
+}
