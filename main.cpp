@@ -53,6 +53,12 @@ long runProgram(float performanceMeasure) {
 		counter++;
 	}
 	Board board = Board(initState);
+	State currState = State(initState, { {} }, NULL, true);
+	/*
+		If only one move is to be made, then all the time can be used
+		Or else, taking an average of 25 moves per game, divide the total time by 25. Minimum 1s.
+	*/
+	timeLeft = executionType == "SINGLE" ? timeLeft : timeLeft / 25;
 	State *currState = new State(initState, { {} }, NULL, true);
 	int depth = getDepth(timeLeft, performanceMeasure);
 	PositionsVector playerPositions = getPositions(initState, team);
