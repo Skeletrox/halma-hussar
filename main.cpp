@@ -7,10 +7,11 @@
 #include "Player.h"
 #include "State.h"
 #include "util.h"
+#include <chrono>
 
 using namespace std;
 
-int main() {
+float runProgram(int depth) {
 	/*Take inputs and store them in a vector
 
 		Line Sequence:
@@ -52,9 +53,11 @@ int main() {
 	}
 	Board board = Board(initState);
 	State currState = State(initState, { {} }, NULL, true);
+	float performance = calibrate();
+
 	PositionsVector playerPositions = getPositions(initState, team);
 	Player player = Player(team, playerPositions);
-	int numTurns = 2, playerDepth = 5;
+	int numTurns = depth, playerDepth = 3;
 	/*
 		Generate the minmax tree with the following attributes:
 			The current State
@@ -63,8 +66,8 @@ int main() {
 			The locations of the player's points
 			Alpha and Beta [For Alpha-Beta Pruning]
 	*/
+	auto start = chrono::high_resolution_clock::now();
 	currState = board.generateMinMaxTree(currState, playerDepth, numTurns, player.getLocations(), FLT_MIN, FLT_MAX, true);
-	cout << currState.getAlphaBetaPrediction() <<  "    " << currState.getScore() << endl;
 	/*
 	for (State c : currState.getChildren()) {
 		cout << endl << c.getAlphaBetaPrediction() << "    " << c.getScore() << endl;
@@ -95,4 +98,17 @@ int main() {
 	outFile.open("./output.txt");
 	outFile << result;
 	outFile.close();
+	auto end = chrono::high_resolution_clock::now();
+	return chrono::duration_cast<chrono::microseconds>(end - start).count();
+}
+
+int main() {
+	vector<long> runTimes;
+	for (int i = 1; i < 4; i++) {
+		runTimes.push_back(runProgram(i));
+	}
+	for (int i = 0; i < runTimes.size(); i++) {
+		cout << i + 1 << " " << runTimes[i] << endl;
+	}
+	return 0;
 }

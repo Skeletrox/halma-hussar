@@ -3,6 +3,7 @@
 */
 #include "util.h"
 #include <math.h>
+#include <chrono>
 
 float max(float a, float b) {
 	return a > b ? a : b;
@@ -23,7 +24,6 @@ PositionsVector getPositions(StateVector boardState, char team) {
 		for (int j = 0; j < 16; j++) {
 			if (boardState[i][j] == team) {
 				neededVector.push_back({ i, j });
-
 				count++;
 				if (count == 19) {
 					breakable = true;
@@ -95,4 +95,13 @@ void printState(State s) {
 		}
 		std::cout << std::endl;
 	}
+}
+
+float calibrate() {
+	auto start = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < 1000; i++) {
+		int x = 0;
+	}
+	auto end = std::chrono::high_resolution_clock::now();
+	return std:: chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 }
