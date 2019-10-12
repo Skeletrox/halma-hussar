@@ -3,6 +3,7 @@
 */
 #include "util.h"
 #include <math.h>
+#include <chrono>
 
 float max(float a, float b) {
 	return a > b ? a : b;
@@ -23,7 +24,6 @@ PositionsVector getPositions(StateVector boardState, char team) {
 		for (int j = 0; j < 16; j++) {
 			if (boardState[i][j] == team) {
 				neededVector.push_back({ i, j });
-
 				count++;
 				if (count == 19) {
 					breakable = true;
@@ -95,4 +95,47 @@ void printState(State s) {
 		}
 		std::cout << std::endl;
 	}
+}
+
+long calibrate() {
+	auto start = std::chrono::high_resolution_clock::now();
+	int x = 0;
+	for (int i = 0; i < 1000; i++) {
+		x++;
+	}
+	auto end = std::chrono::high_resolution_clock::now();
+	long diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+	return diff;
+}
+
+int getDepth(float timeRemaining, long calibratedValue) {
+	/*
+		The hard time limits are as follows:
+			The following time limits are generated on a calibration factor of 1,
+			i.e. incrementing a variable 1000 times takes 1 second
+			Precalculated values for execution time for number of turns is (with a max Jump of 3, i.e. the agent will only jump 3 times):
+			depthMicroSeconds = {
+				1: 25827,
+				2: 197755,
+				3: 6052148,
+				4: 11055020,
+				5: 275469824,
+				6: 721433536
+			}
+			A way to maximize output is to perform thia again on the child node if more time can be spared.
+
+			The time remaining can be expressed in microseconds, and divide by calibratedValue, as a slower computer
+			can cause our values to be awry.
+	*/
+	float timeRemainingMicrosec = timeRemaining * 1000000 / calibratedValue;
+	std::array<long, 6> times{ 25827, 197755, 6052148, 11055020, 275469824, 721433536 };
+
+	// The returnable contains 2 integers, how deep to go, and how many times to go deep
+	for (int i = 0; i < times.size()-1; i++) {
+		if (timeRemainingMicrosec < times[i + 1]) {
+			// We don't have enough time to deepen to the next level; stop here
+			return i + 1; // Zero-indexed array
+		}
+	}
+	return times.size();
 }

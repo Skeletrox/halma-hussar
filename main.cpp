@@ -7,10 +7,12 @@
 #include "Player.h"
 #include "State.h"
 #include "util.h"
+#include <chrono>
+#include <cfloat>
 
 using namespace std;
 
-int main() {
+float runProgram(float performanceMeasure) {
 	/*Take inputs and store them in a vector
 
 		Line Sequence:
@@ -52,9 +54,10 @@ int main() {
 	}
 	Board board = Board(initState);
 	State currState = State(initState, { {} }, NULL, true);
+	int depth = getDepth(timeLeft, performanceMeasure);
 	PositionsVector playerPositions = getPositions(initState, team);
 	Player player = Player(team, playerPositions);
-	int numTurns = 2, playerDepth = 5;
+	int playerDepth = 3;
 	/*
 		Generate the minmax tree with the following attributes:
 			The current State
@@ -63,8 +66,8 @@ int main() {
 			The locations of the player's points
 			Alpha and Beta [For Alpha-Beta Pruning]
 	*/
-	currState = board.generateMinMaxTree(currState, playerDepth, numTurns, player.getLocations(), FLT_MIN, FLT_MAX, true);
-	cout << currState.getAlphaBetaPrediction() <<  "    " << currState.getScore() << endl;
+	auto start = chrono::high_resolution_clock::now();
+	currState = board.generateMinMaxTree(currState, playerDepth, depth, player.getLocations(), FLT_MIN, FLT_MAX, true);
 	/*
 	for (State c : currState.getChildren()) {
 		cout << endl << c.getAlphaBetaPrediction() << "    " << c.getScore() << endl;
@@ -87,7 +90,7 @@ int main() {
 	result.append(isJump(move) ? "J " : "E ");
 	for (array<int, 2> m : move) {
 		char *currstring = (char*) malloc(40);
-		sprintf_s(currstring, 40, "%d,%d ", m[0], m[1]);
+		snprintf(currstring, 40, "%d,%d ", m[0], m[1]);
 		result.append(currstring);
 	}
 	char* immutableResult = (char*)malloc(result.size());
@@ -95,4 +98,11 @@ int main() {
 	outFile.open("./output.txt");
 	outFile << result;
 	outFile.close();
+	auto end = chrono::high_resolution_clock::now();
+	return chrono::duration_cast<chrono::microseconds>(end - start).count();
+}
+
+int main() {
+	float performanceMeasure = calibrate();
+	runProgram(performanceMeasure);
 }

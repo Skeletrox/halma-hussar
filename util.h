@@ -1,6 +1,8 @@
 #pragma once
 #include "components.h"
 #include "State.h"
+#include <limits>
+#include <cfloat>
 
 PositionsVector getPositions(StateVector boardState, char team);
 
@@ -16,3 +18,7 @@ float doMinValue(State* state, float alpha, float beta);
 float doMaxValue(State* state, float alpha, float beta);
 
 void printState(State s);
+
+long calibrate();
+
+int getDepth(float timeRemaining, long calibratedValue);
