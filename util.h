@@ -1,6 +1,8 @@
 #pragma once
 #include "components.h"
 #include "State.h"
+#include <limits>
+#include <cfloat>
 
 PositionsVector getPositions(StateVector boardState, char team);
 

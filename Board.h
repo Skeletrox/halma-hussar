@@ -1,6 +1,7 @@
 #pragma once
 #include "components.h"
 #include "State.h"
+#include <cfloat>
 
 class Board {
 private:
