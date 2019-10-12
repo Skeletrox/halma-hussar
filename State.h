@@ -23,7 +23,7 @@ public:
 	State(StateVector inpState, PositionsVector inPositions, State *inParent, bool root);
 	// Getter and setter for children
 	std::vector<State> getChildren();
-	void setFutureStates(PositionsVector positions, int level, std::map<std::array<int, 2>, bool> visited);
+	void setFutureStates(PositionsVector positions, int level, std::map<std::array<int, 2>, bool> visited, char team, PositionsVector baseAnchors);
 	State getDesiredChild();
 	void setDesiredChildLoc(int i);
 	int getDesiredChildLoc();

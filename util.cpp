@@ -139,3 +139,36 @@ int getDepth(float timeRemaining, long calibratedValue) {
 	}
 	return times.size();
 }
+
+bool isIllegal(int xStart, int yStart, int xEnd, int yEnd, PositionsVector baseAnchors, char team) {
+	if (team == 'B') {
+		// 1. Your own base is the baseAnchors. Make sure that your piece, if not in baseAnchors, does not jump back
+		// 2. Your opponent's base is at 15 - baseAnchors. Do not jump out of it.
+		if (!found(xStart, yStart, baseAnchors, false) && found(xEnd, yEnd, baseAnchors, false)) { // Case 1
+			return true;
+		}
+		else if (found(xStart, yStart, baseAnchors, true) && !found(xEnd, yEnd, baseAnchors, true)) { // Case 2
+			return false;
+		}
+	}
+	else {
+		// The above lines switched in context.
+		if (!found(xStart, yStart, baseAnchors, true) && found(xEnd, yEnd, baseAnchors, true)) { // Case 1
+			return true;
+		}
+		else if (found(xStart, yStart, baseAnchors, false) && !found(xEnd, yEnd, baseAnchors, false)) { // Case 2
+			return false;
+		}
+	}
+	// Somehow we got here. Let it be an illegal move.
+	return true;
+}
+
+bool found(int x, int y, PositionsVector baseAnchors, bool reverse) {
+	for (std::array<int, 2> b : baseAnchors) {
+		if (x == reverse ? 15 - b[0] : b[0] && y == reverse ? 15 - b[1] : b[1]) {
+			return true;
+		}
+	}
+	return false;
+}
