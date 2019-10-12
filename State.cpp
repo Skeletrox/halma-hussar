@@ -86,7 +86,7 @@ void State::setScore(char player, PositionsVector playersBases) {
 	score = totalScore;
 }
 
-void State::setFutureStates(PositionsVector positions, int level, map<array<int, 2>, bool> visited) {
+void State::setFutureStates(PositionsVector positions, int level, map<array<int, 2>, bool> visited, char team, PositionsVector baseAnchors) {
 	if (level == 0) {
 		return;
 	}
@@ -121,6 +121,15 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 		for (int j = 0; j < adjacentCells.size(); j++) {
 			StateVector newState(state);
 			int currX = adjacentCells[j][0], currY = adjacentCells[j][1];
+
+			/*
+				Move constraints:
+					Do not jump back into your base, do not jump out of your opponent's base
+			*/
+			if (isIllegal(x, y, currX, currY, baseAnchors, team)) {
+				continue;
+			}
+
 			// Generate the state with the current coin swapped with the void in the other cell
 			// If there is something in that cell, check if it can be jumped over
 			if (newState[currY][currX] == '.') {
@@ -164,7 +173,7 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 					children.push_back(childState);
 					// Use this to get child states so that you can choose the appropriate child later
 					// Only consider the children from this new target point
-					childState.setFutureStates({ {newTargetx, newTargety} }, level - 1, visited);
+					childState.setFutureStates({ {newTargetx, newTargety} }, level - 1, visited, team, baseAnchors);
 				}
 			}
 		}

@@ -80,9 +80,6 @@ State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, Posi
 	
 	std::map<std::array<int, 2>, bool> visited;
 	visited.insert(std::pair<std::array<int, 2>, bool>({}, false));
-
-	// Create all the child states of this parent
-	parent.setFutureStates(argLocations, jumpDepth, visited);
 	/*
 		Get the opponent's locations how?
 			Given your pieces, calculate the appropriate PositionsVector for the other player?
@@ -90,6 +87,10 @@ State Board::generateMinMaxTree(State parent, int jumpDepth, int turnCount, Posi
 			Also try to incorporate Alpha Beta Pruning here itself to avoid unnecessary expansion
 	*/
 	char team = parent.getState()[argLocations[0][1]][argLocations[0][0]];
+
+	// Create all the child states of this parent
+	parent.setFutureStates(argLocations, jumpDepth, visited, team, blackBase);
+
 	char opponentTeam = team == 'B' ? 'W' : 'B';
 	PositionsVector opponentPositions = getPositions(parent.getState(), opponentTeam);
 	// If we have reached the depth then we shall return the utility of this board
