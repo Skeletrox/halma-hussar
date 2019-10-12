@@ -57,7 +57,7 @@ long runProgram(float performanceMeasure) {
 	int depth = getDepth(timeLeft, performanceMeasure);
 	PositionsVector playerPositions = getPositions(initState, team);
 	Player player = Player(team, playerPositions);
-	int playerDepth = 3;
+	int playerDepth = 4;
 	/*
 		Generate the minmax tree with the following attributes:
 			The current State
