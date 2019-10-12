@@ -12,7 +12,7 @@
 
 using namespace std;
 
-float runProgram(int depth) {
+float runProgram(float performanceMeasure) {
 	/*Take inputs and store them in a vector
 
 		Line Sequence:
@@ -54,11 +54,10 @@ float runProgram(int depth) {
 	}
 	Board board = Board(initState);
 	State currState = State(initState, { {} }, NULL, true);
-	float performance = calibrate();
-
+	int depth = getDepth(timeLeft, performanceMeasure);
 	PositionsVector playerPositions = getPositions(initState, team);
 	Player player = Player(team, playerPositions);
-	int numTurns = depth, playerDepth = 6;
+	int playerDepth = 3;
 	/*
 		Generate the minmax tree with the following attributes:
 			The current State
@@ -68,7 +67,7 @@ float runProgram(int depth) {
 			Alpha and Beta [For Alpha-Beta Pruning]
 	*/
 	auto start = chrono::high_resolution_clock::now();
-	currState = board.generateMinMaxTree(currState, playerDepth, numTurns, player.getLocations(), FLT_MIN, FLT_MAX, true);
+	currState = board.generateMinMaxTree(currState, playerDepth, depth, player.getLocations(), FLT_MIN, FLT_MAX, true);
 	/*
 	for (State c : currState.getChildren()) {
 		cout << endl << c.getAlphaBetaPrediction() << "    " << c.getScore() << endl;
@@ -91,7 +90,7 @@ float runProgram(int depth) {
 	result.append(isJump(move) ? "J " : "E ");
 	for (array<int, 2> m : move) {
 		char *currstring = (char*) malloc(40);
-		sprintf(currstring, "%d,%d ", m[0], m[1]);
+		snprintf(currstring, 40, "%d,%d ", m[0], m[1]);
 		result.append(currstring);
 	}
 	char* immutableResult = (char*)malloc(result.size());
@@ -104,10 +103,6 @@ float runProgram(int depth) {
 }
 
 int main() {
-	vector<long> runTimes;
-	for (int i = 1; i < 7; i++) {
-		runTimes.push_back(runProgram(i));
-		cout << i << " " << runTimes[i-1] << endl;
-	}
-	return 0;
+	float performanceMeasure = calibrate();
+	runProgram(performanceMeasure);
 }

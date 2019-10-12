@@ -28,4 +28,3 @@ PositionsVector Player::getLocations() {
 }
 
 
-

@@ -19,4 +19,6 @@ float doMaxValue(State* state, float alpha, float beta);
 
 void printState(State s);
 
-float calibrate();
+long calibrate();
+
+int getDepth(float timeRemaining, long calibratedValue);
