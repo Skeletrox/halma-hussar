@@ -23,7 +23,7 @@ PositionsVector getPositions(StateVector boardState, char team) {
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
 			if (boardState[i][j] == team) {
-				neededVector.push_back({ i, j });
+				neededVector.push_back({ j, i });
 				count++;
 				if (count == 19) {
 					breakable = true;
@@ -142,31 +142,29 @@ int getDepth(float timeRemaining, long calibratedValue) {
 
 bool isIllegal(int xStart, int yStart, int xEnd, int yEnd, PositionsVector baseAnchors, char team) {
 	if (team == 'B') {
-		// 1. Your own base is the baseAnchors. Make sure that your piece, if not in baseAnchors, does not jump back
+		// 1. Your own base is the baseAnchors. Make sure that your piece, if not in your base, does not jump back
 		// 2. Your opponent's base is at 15 - baseAnchors. Do not jump out of it.
 		if (!found(xStart, yStart, baseAnchors, false) && found(xEnd, yEnd, baseAnchors, false)) { // Case 1
 			return true;
-		}
-		else if (found(xStart, yStart, baseAnchors, true) && !found(xEnd, yEnd, baseAnchors, true)) { // Case 2
-			return false;
+		} else if (found(xStart, yStart, baseAnchors, true) && !found(xEnd, yEnd, baseAnchors, true)) { // Case 2
+			return true;
 		}
 	}
 	else {
 		// The above lines switched in context.
 		if (!found(xStart, yStart, baseAnchors, true) && found(xEnd, yEnd, baseAnchors, true)) { // Case 1
 			return true;
-		}
-		else if (found(xStart, yStart, baseAnchors, false) && !found(xEnd, yEnd, baseAnchors, false)) { // Case 2
-			return false;
+		} else if (found(xStart, yStart, baseAnchors, false) && !found(xEnd, yEnd, baseAnchors, false)) { // Case 2
+			return true;
 		}
 	}
-	// Somehow we got here. Let it be an illegal move.
-	return true;
+	// Legal move only
+	return false;
 }
 
 bool found(int x, int y, PositionsVector baseAnchors, bool reverse) {
 	for (std::array<int, 2> b : baseAnchors) {
-		if (x == reverse ? 15 - b[0] : b[0] && y == reverse ? 15 - b[1] : b[1]) {
+		if ((x == (reverse ? 15 - b[0] : b[0])) && (y == (reverse ? 15 - b[1] : b[1]))) {
 			return true;
 		}
 	}
