@@ -16,18 +16,18 @@ private:
 	bool jump;
 	State* parent;
 	int desiredChildLoc;
-	std::vector<State> children;
+	std::vector<State *> children;
 	float score, alphaBetaPrediction;
 
 public:
 	State(StateVector inpState, PositionsVector inPositions, State *inParent, bool root);
 	// Getter and setter for children
-	std::vector<State> getChildren();
+	std::vector<State *> getChildren();
 	void setFutureStates(PositionsVector positions, int level, std::map<std::array<int, 2>, bool> visited, char team, PositionsVector baseAnchors);
-	State getDesiredChild();
+	State* getDesiredChild();
 	void setDesiredChildLoc(int i);
 	int getDesiredChildLoc();
-	void setChildren(std::vector<State> argChildren);
+	void setChildren(std::vector<State *> argChildren);
 
 	// Getter and setter for score and alphaBetaPrediction
 	void setScore(char player, PositionsVector playersBases);
