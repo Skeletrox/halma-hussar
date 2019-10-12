@@ -8,6 +8,7 @@
 #include "State.h"
 #include "util.h"
 #include <chrono>
+#include <cfloat>
 
 using namespace std;
 
@@ -57,7 +58,7 @@ float runProgram(int depth) {
 
 	PositionsVector playerPositions = getPositions(initState, team);
 	Player player = Player(team, playerPositions);
-	int numTurns = depth, playerDepth = 3;
+	int numTurns = depth, playerDepth = 6;
 	/*
 		Generate the minmax tree with the following attributes:
 			The current State
@@ -90,7 +91,7 @@ float runProgram(int depth) {
 	result.append(isJump(move) ? "J " : "E ");
 	for (array<int, 2> m : move) {
 		char *currstring = (char*) malloc(40);
-		sprintf_s(currstring, 40, "%d,%d ", m[0], m[1]);
+		sprintf(currstring, "%d,%d ", m[0], m[1]);
 		result.append(currstring);
 	}
 	char* immutableResult = (char*)malloc(result.size());
@@ -104,11 +105,9 @@ float runProgram(int depth) {
 
 int main() {
 	vector<long> runTimes;
-	for (int i = 1; i < 4; i++) {
+	for (int i = 1; i < 7; i++) {
 		runTimes.push_back(runProgram(i));
-	}
-	for (int i = 0; i < runTimes.size(); i++) {
-		cout << i + 1 << " " << runTimes[i] << endl;
+		cout << i << " " << runTimes[i-1] << endl;
 	}
 	return 0;
 }
