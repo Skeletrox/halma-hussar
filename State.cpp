@@ -163,6 +163,14 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 				if ((newTargetx > 15) || (newTargetx < 0) || (newTargety > 15) || (newTargety < 0) || visited.count({ newTargetx, newTargety }) > 0 || (newTargety == y &&  newTargetx == x)) {
 					continue;
 				}
+
+				/*
+				Move constraints:
+					Do not jump back into your base, do not jump out of your opponent's base
+				*/
+				if (isIllegal(x, y, currX, currY, baseAnchors, team)) {
+					continue;
+				}
 				if (newState[newTargety][newTargetx] == '.') {
 					// Perform the jump and update.
 					newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
