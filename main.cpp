@@ -12,7 +12,7 @@
 
 using namespace std;
 
-float runProgram(float performanceMeasure) {
+long runProgram(float performanceMeasure) {
 	/*Take inputs and store them in a vector
 
 		Line Sequence:
@@ -99,7 +99,9 @@ float runProgram(float performanceMeasure) {
 	outFile << result;
 	outFile.close();
 	auto end = chrono::high_resolution_clock::now();
-	return chrono::duration_cast<chrono::microseconds>(end - start).count();
+	long actual = chrono::duration_cast<chrono::microseconds>(end - start).count();
+	cout << "Actual duration: " << actual;
+	return actual;
 }
 
 int main() {

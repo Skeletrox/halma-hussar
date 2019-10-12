@@ -134,6 +134,7 @@ int getDepth(float timeRemaining, long calibratedValue) {
 	for (int i = 0; i < times.size()-1; i++) {
 		if (timeRemainingMicrosec < times[i + 1]) {
 			// We don't have enough time to deepen to the next level; stop here
+			std::cout << "Expected duration: " << times[i] << std::endl;
 			return i + 1; // Zero-indexed array
 		}
 	}
