@@ -12,7 +12,7 @@
 
 using namespace std;
 
-float runProgram(float performanceMeasure) {
+long runProgram(float performanceMeasure) {
 	/*Take inputs and store them in a vector
 
 		Line Sequence:
@@ -59,10 +59,11 @@ float runProgram(float performanceMeasure) {
 		Or else, taking an average of 25 moves per game, divide the total time by 25. Minimum 1s.
 	*/
 	timeLeft = executionType == "SINGLE" ? timeLeft : timeLeft / 25;
+	State *currState = new State(initState, { {} }, NULL, true);
 	int depth = getDepth(timeLeft, performanceMeasure);
 	PositionsVector playerPositions = getPositions(initState, team);
 	Player player = Player(team, playerPositions);
-	int playerDepth = 3;
+	int playerDepth = 4;
 	/*
 		Generate the minmax tree with the following attributes:
 			The current State
@@ -89,9 +90,9 @@ float runProgram(float performanceMeasure) {
 		}
 	}
 	*/
-	State desiredChild = currState.getDesiredChild();
+	State *desiredChild = currState->getDesiredChild();
 	string result;
-	PositionsVector move = desiredChild.getPositions();
+	PositionsVector move = desiredChild->getPositions();
 	result.append(isJump(move) ? "J " : "E ");
 	for (array<int, 2> m : move) {
 		char *currstring = (char*) malloc(40);
@@ -104,7 +105,9 @@ float runProgram(float performanceMeasure) {
 	outFile << result;
 	outFile.close();
 	auto end = chrono::high_resolution_clock::now();
-	return chrono::duration_cast<chrono::microseconds>(end - start).count();
+	long actual = chrono::duration_cast<chrono::microseconds>(end - start).count();
+	cout << "Actual duration: " << actual;
+	return actual;
 }
 
 int main() {

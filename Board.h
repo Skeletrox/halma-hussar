@@ -11,6 +11,6 @@ private:
 public:
 	Board(StateVector inpState);
 	PositionsVector getBase(char team);
-	State generateMinMaxTree(State s, int jumpDepth, int turnCount, PositionsVector argLocations, float alpha, float beta, bool max);
+	State* generateMinMaxTree(State *s, int jumpDepth, int turnCount, PositionsVector argLocations, float alpha, float beta, bool max);
 };
 

@@ -142,7 +142,7 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 
 				// Create a child state object
 				PositionsVector positionPair = { {x, y}, {currX, currY} };
-				State childState = State(newState, positionPair, this, false);
+				State *childState = new State(newState, positionPair, this, false);
 				children.push_back(childState);
 
 				// Add the current child to visited so that we don't try to go here again
@@ -163,17 +163,25 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 				if ((newTargetx > 15) || (newTargetx < 0) || (newTargety > 15) || (newTargety < 0) || visited.count({ newTargetx, newTargety }) > 0 || (newTargety == y &&  newTargetx == x)) {
 					continue;
 				}
+
+				/*
+					Move constraints:
+						Do not jump back into your base, do not jump out of your opponent's base
+				*/
+				if (isIllegal(x, y, currX, currY, baseAnchors, team)) {
+					continue;
+				}
 				if (newState[newTargety][newTargetx] == '.') {
 					// Perform the jump and update.
 					newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
 					newState[newTargety][newTargetx] = newState[y][x] ^ newState[newTargety][newTargetx];
 					newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
 					PositionsVector positionPair = { {x, y}, {newTargetx, newTargety} };
-					State childState = State(newState, positionPair, this, false);
+					State *childState = new State(newState, positionPair, this, false);
 					children.push_back(childState);
 					// Use this to get child states so that you can choose the appropriate child later
 					// Only consider the children from this new target point
-					childState.setFutureStates({ {newTargetx, newTargety} }, level - 1, visited, team, baseAnchors);
+					childState->setFutureStates({ {newTargetx, newTargety} }, level - 1, visited, team, baseAnchors);
 				}
 			}
 		}
@@ -184,11 +192,11 @@ StateVector State::getState() {
 	return state;
 }
 
-std::vector<State> State::getChildren() {
+std::vector<State *> State::getChildren() {
 	return children;
 }
 
-State State::getDesiredChild() {
+State* State::getDesiredChild() {
 	return getChildren()[desiredChildLoc];
 }
 
@@ -204,7 +212,7 @@ void State::setAlphaBetaPrediction(float value) {
 	alphaBetaPrediction = value;
 }
 
-void State::setChildren(std::vector<State> argChildren) {
+void State::setChildren(std::vector<State *> argChildren) {
 	children = argChildren;
 }
 
