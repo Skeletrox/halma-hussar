@@ -53,7 +53,7 @@ long runProgram(float performanceMeasure) {
 		counter++;
 	}
 	Board board = Board(initState);
-	State currState = State(initState, { {} }, NULL, true);
+	State *currState = new State(initState, { {} }, NULL, true);
 	int depth = getDepth(timeLeft, performanceMeasure);
 	PositionsVector playerPositions = getPositions(initState, team);
 	Player player = Player(team, playerPositions);
@@ -84,9 +84,9 @@ long runProgram(float performanceMeasure) {
 		}
 	}
 	*/
-	State desiredChild = currState.getDesiredChild();
+	State *desiredChild = currState->getDesiredChild();
 	string result;
-	PositionsVector move = desiredChild.getPositions();
+	PositionsVector move = desiredChild->getPositions();
 	result.append(isJump(move) ? "J " : "E ");
 	for (array<int, 2> m : move) {
 		char *currstring = (char*) malloc(40);

@@ -62,8 +62,8 @@ float doMaxValue(State* state, float alpha, float beta) {
 		return state->getScore();
 	}
 	float v = FLT_MIN;
-	for (State s : state->getChildren()) {
-		v = max(v, doMinValue(&s, alpha, beta));
+	for (State *s : state->getChildren()) {
+		v = max(v, doMinValue(s, alpha, beta));
 		if (v >= beta){
 			return v;
 		}
@@ -77,8 +77,8 @@ float doMinValue(State* state, float alpha, float beta) {
 		return state->getScore();
 	}
 	float v = FLT_MAX;
-	for (State s : state->getChildren()) {
-		v = min(v, doMaxValue(&s, alpha, beta));
+	for (State *s : state->getChildren()) {
+		v = min(v, doMaxValue(s, alpha, beta));
 		if (v <= alpha) {
 			return v;
 		}
