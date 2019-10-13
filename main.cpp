@@ -25,7 +25,7 @@ long runProgram(float performanceMeasure) {
 				.: Empty Cell
 	*/
 	ifstream inputFile;
-	inputFile.open("./input.txt");
+	inputFile.open("./input2.txt");
 	StateVector initState;
 	string executionType, s;
 	char team = 'B';
@@ -53,12 +53,15 @@ long runProgram(float performanceMeasure) {
 		counter++;
 	}
 	Board board = Board(initState);
-	State currState = State(initState, { {} }, NULL, true);
 	/*
-		If only one move is to be made, then all the time can be used
-		Or else, taking an average of 25 moves per game, divide the total time by 25. Minimum 1s.
+		If the execution type is a game, then check for a playdata.txt
+		The playdata.txt contains the time you can take for a move.
 	*/
-	timeLeft = executionType == "SINGLE" ? timeLeft : timeLeft / 25;
+	if (executionType == "GAME") {
+		
+		// The minimum game length is 45 moves, apparently.
+		timeLeft = timeLeft / 45;
+	}
 	State *currState = new State(initState, { {} }, NULL, true);
 	int depth = getDepth(timeLeft, performanceMeasure);
 	PositionsVector playerPositions = getPositions(initState, team);
@@ -73,24 +76,15 @@ long runProgram(float performanceMeasure) {
 			Alpha and Beta [For Alpha-Beta Pruning]
 	*/
 	auto start = chrono::high_resolution_clock::now();
-	currState = board.generateMinMaxTree(currState, playerDepth, depth, player.getLocations(), FLT_MIN, FLT_MAX, true);
+	currState = board.generateMinMaxTree(currState, playerDepth, depth, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
 	/*
-	for (State c : currState.getChildren()) {
-		cout << endl << c.getAlphaBetaPrediction() << "    " << c.getScore() << endl;
-		cout << c.getChildren().size() << endl;
-		for (State c2 : c.getChildren()) {
-			cout << &c2<< "    " << c2.getAlphaBetaPrediction() << " and " << c2.getScore() <<  " " << endl;
-			for (int i = 0; i < 16; i++) {
-				for (int j = 0; j < 16; j++) {
-					cout << c2.getState()[i][j];
-				}
-				cout << endl;
-			}
-			cout << endl << endl;
-		}
-	}
-	*/
+	for (State* s : currState->getChildren()) {
+		cout << s->getScore() << endl;
+		printPositions(s->getPositions());
+	}*/
 	State *desiredChild = currState->getDesiredChild();
+	cout << endl << "desired child has result " << desiredChild->getScore() << " and is at index " << currState->getDesiredChildLoc() << endl;
+	cout << "Root is at " << currState << endl;
 	string result;
 	PositionsVector move = desiredChild->getPositions();
 	result.append(isJump(move) ? "J " : "E ");
@@ -106,7 +100,7 @@ long runProgram(float performanceMeasure) {
 	outFile.close();
 	auto end = chrono::high_resolution_clock::now();
 	long actual = chrono::duration_cast<chrono::microseconds>(end - start).count();
-	cout << "Actual duration: " << actual;
+	cout << "Actual duration: " << actual << endl;
 	return actual;
 }
 

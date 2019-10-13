@@ -16,12 +16,12 @@ float min(float a, float b) {
 
 // Returns the positions of all the pieces of a certain team.
 PositionsVector getPositions(StateVector boardState, char team) {
-	PositionsVector neededVector;
+	PositionsVector neededVector{};
 	// Iterate through the 16x16 board
 	int count = 0;
 	bool breakable = false;
-	for (int i = 0; i < 16; i++) {
-		for (int j = 0; j < 16; j++) {
+	for (int i = 0; i < boardState.size(); i++) {
+		for (int j = 0; j < boardState[i].size(); j++) {
 			if (boardState[i][j] == team) {
 				neededVector.push_back({ j, i });
 				count++;
@@ -46,7 +46,7 @@ bool isJump(PositionsVector positions) {
 // Utility function, defined as the distance from (x, y) to y = x
 float utility(int x, int y) {
 	float numerator = float(x) - float(y);
-	return ( numerator / float(sqrt(x * x + y * y)));
+	return ( numerator / float(sqrt(2)));
 }
 
 
@@ -61,7 +61,7 @@ float doMaxValue(State* state, float alpha, float beta) {
 	if (state->getChildren().size() == 0) {
 		return state->getScore();
 	}
-	float v = FLT_MIN;
+	float v = -FLT_MAX + 1;
 	for (State *s : state->getChildren()) {
 		v = max(v, doMinValue(s, alpha, beta));
 		if (v >= beta){
@@ -138,6 +138,7 @@ int getDepth(float timeRemaining, long calibratedValue) {
 			return i + 1; // Zero-indexed array
 		}
 	}
+	std::cout << "Urgat";
 	return times.size();
 }
 
@@ -170,4 +171,21 @@ bool found(int x, int y, PositionsVector baseAnchors, bool reverse) {
 		}
 	}
 	return false;
+}
+
+// Returns the diagonal mirror of the positions along y + x = 15
+PositionsVector getMirror(PositionsVector original) {
+	PositionsVector mirror;
+	for (std::array<int, 2> o : original) {
+		std::array<int, 2> v{ 15 - o[0], 15 - o[1] };
+		mirror.push_back(v);
+	}
+	return mirror;
+}
+
+void printPositions(PositionsVector positions) {
+	for (std::array<int, 2> p : positions) {
+		std::cout << p[0] << "," << p[1] << " ";
+	}
+	std::cout << std::endl;
 }
