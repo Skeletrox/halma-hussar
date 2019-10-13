@@ -52,13 +52,23 @@ long runProgram(float performanceMeasure) {
 		}
 		counter++;
 	}
+	for (int i = 0; i < initState.size(); i++) {
+		for (int j = 0; j < initState[i].size(); j++) {
+			cout << initState[i][j];
+		}
+		cout << endl;
+	}
 	Board board = Board(initState);
-	State currState = State(initState, { {} }, NULL, true);
+
 	/*
-		If only one move is to be made, then all the time can be used
-		Or else, taking an average of 25 moves per game, divide the total time by 25. Minimum 1s.
+		If the execution type is a game, then check for a playdata.txt
+		The playdata.txt contains the time you can take for a move.
 	*/
-	timeLeft = executionType == "SINGLE" ? timeLeft : timeLeft / 25;
+	if (executionType == "GAME") {
+		
+		// The minimum game length is 45 moves, apparently.
+		timeLeft = timeLeft / 45;
+	}
 	State *currState = new State(initState, { {} }, NULL, true);
 	int depth = getDepth(timeLeft, performanceMeasure);
 	PositionsVector playerPositions = getPositions(initState, team);
@@ -106,7 +116,7 @@ long runProgram(float performanceMeasure) {
 	outFile.close();
 	auto end = chrono::high_resolution_clock::now();
 	long actual = chrono::duration_cast<chrono::microseconds>(end - start).count();
-	cout << "Actual duration: " << actual;
+	cout << "Actual duration: " << actual << endl;
 	return actual;
 }
 

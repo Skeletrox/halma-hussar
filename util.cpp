@@ -16,12 +16,12 @@ float min(float a, float b) {
 
 // Returns the positions of all the pieces of a certain team.
 PositionsVector getPositions(StateVector boardState, char team) {
-	PositionsVector neededVector;
+	PositionsVector neededVector{};
 	// Iterate through the 16x16 board
 	int count = 0;
 	bool breakable = false;
-	for (int i = 0; i < 16; i++) {
-		for (int j = 0; j < 16; j++) {
+	for (int i = 0; i < boardState.size(); i++) {
+		for (int j = 0; j < boardState[i].size(); j++) {
 			if (boardState[i][j] == team) {
 				neededVector.push_back({ j, i });
 				count++;
