@@ -53,7 +53,6 @@ long runProgram(float performanceMeasure) {
 		counter++;
 	}
 	Board board = Board(initState);
-
 	/*
 		If the execution type is a game, then check for a playdata.txt
 		The playdata.txt contains the time you can take for a move.
@@ -77,24 +76,13 @@ long runProgram(float performanceMeasure) {
 			Alpha and Beta [For Alpha-Beta Pruning]
 	*/
 	auto start = chrono::high_resolution_clock::now();
-	currState = board.generateMinMaxTree(currState, playerDepth, depth, player.getLocations(), FLT_MIN, FLT_MAX, true);
-	/*
-	for (State c : currState.getChildren()) {
-		cout << endl << c.getAlphaBetaPrediction() << "    " << c.getScore() << endl;
-		cout << c.getChildren().size() << endl;
-		for (State c2 : c.getChildren()) {
-			cout << &c2<< "    " << c2.getAlphaBetaPrediction() << " and " << c2.getScore() <<  " " << endl;
-			for (int i = 0; i < 16; i++) {
-				for (int j = 0; j < 16; j++) {
-					cout << c2.getState()[i][j];
-				}
-				cout << endl;
-			}
-			cout << endl << endl;
-		}
+	currState = board.generateMinMaxTree(currState, playerDepth, depth, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
+	for (State* s : currState->getChildren()) {
+		cout << s->getScore() << endl;
 	}
-	*/
 	State *desiredChild = currState->getDesiredChild();
+	cout << endl << "desired child has result " << desiredChild->getScore() << " and is at index " << currState->getDesiredChildLoc() << endl;
+	cout << "Root is at " << currState << endl;
 	string result;
 	PositionsVector move = desiredChild->getPositions();
 	result.append(isJump(move) ? "J " : "E ");

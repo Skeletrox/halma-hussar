@@ -46,7 +46,7 @@ bool isJump(PositionsVector positions) {
 // Utility function, defined as the distance from (x, y) to y = x
 float utility(int x, int y) {
 	float numerator = float(x) - float(y);
-	return ( numerator / float(sqrt(x * x + y * y)));
+	return ( numerator / float(sqrt(2)));
 }
 
 
@@ -61,7 +61,7 @@ float doMaxValue(State* state, float alpha, float beta) {
 	if (state->getChildren().size() == 0) {
 		return state->getScore();
 	}
-	float v = FLT_MIN;
+	float v = -FLT_MAX + 1;
 	for (State *s : state->getChildren()) {
 		v = max(v, doMinValue(s, alpha, beta));
 		if (v >= beta){
@@ -138,6 +138,7 @@ int getDepth(float timeRemaining, long calibratedValue) {
 			return i + 1; // Zero-indexed array
 		}
 	}
+	std::cout << "Urgat";
 	return times.size();
 }
 
@@ -170,4 +171,14 @@ bool found(int x, int y, PositionsVector baseAnchors, bool reverse) {
 		}
 	}
 	return false;
+}
+
+// Returns the diagonal mirror of the positions along y + x = 15
+PositionsVector getMirror(PositionsVector original) {
+	PositionsVector mirror;
+	for (std::array<int, 2> o : original) {
+		std::array<int, 2> v{ 15 - o[0], 15 - o[1] };
+		mirror.push_back(v);
+	}
+	return mirror;
 }

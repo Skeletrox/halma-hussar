@@ -103,7 +103,7 @@ State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, Po
 		return parent;
 	}
 	// If the node is a MAX expander, set the value to -inf, else set it to inf
-	float v = isMax ? FLT_MIN : FLT_MAX;
+	float v = isMax ? -FLT_MAX + 1 : FLT_MAX;
 
 	// Get all the children
 	std::vector<State *> children = parent->getChildren();
