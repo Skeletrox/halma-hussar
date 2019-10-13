@@ -29,9 +29,9 @@ public:
 	void setChildren(std::vector<State *> argChildren);
 
 	//Future state predictors
-	void setFutureStates(PositionsVector positions, int level, std::map<std::array<int, 2>, bool> visited, char team, PositionsVector baseAnchors);
+	void setFutureStates(PositionsVector positions, int level, std::map<std::array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors);
 	std::vector<State*> getSteps(PositionsVector positions, char team, PositionsVector baseAnchors);
-	std::vector<State*> getJumps(PositionsVector positions, char team, PositionsVector baseAnchors, std::map<std::array<int, 2>, bool> visited);
+	std::vector<State*> getJumps(PositionsVector positions, char team, PositionsVector baseAnchors, std::map<std::array<int, 2>, bool> *visited);
 
 	// Getter and setter for score and alphaBetaPrediction
 	void setScore(char player, PositionsVector playersBases);

@@ -60,6 +60,7 @@ Board::Board(StateVector inpState) {
 		blackBase.push_back(currBlack);
 		whiteBase.push_back(currWhite);
 	}
+	visited = new std::map<std::array<int, 2>, bool>;
 
 }
 
@@ -77,10 +78,7 @@ PositionsVector Board::getBase(char team) {
 	This implies that for a depth of 3 moves, you look at 7 million moves. Use alpha beta pruning?
 */
 State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, PositionsVector argLocations, float alpha, float beta, bool isMax) {
-	std::cout << "Urgat0\n";
-	std::map<std::array<int, 2>, bool> visited;
-	visited.insert(std::pair<std::array<int, 2>, bool>({}, false));
-	std::cout << "Urgat1\n";
+	visited->insert(std::pair<std::array<int, 2>, bool>({}, false));
 	/*
 		Get the opponent's locations how?
 			Given your pieces, calculate the appropriate PositionsVector for the other player?

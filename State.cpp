@@ -86,7 +86,7 @@ void State::setScore(char player, PositionsVector playersBases) {
 	score = totalScore;
 }
 
-void State::setFutureStates(PositionsVector positions, int level, map<array<int, 2>, bool> visited, char team, PositionsVector baseAnchors) {
+void State::setFutureStates(PositionsVector positions, int level, map<array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors) {
 	if (level == 0) {
 		return;
 	}
@@ -160,7 +160,7 @@ std::vector<State*> State::getSteps(PositionsVector positions, char team, Positi
 	return stepChildren;
 }
 
-std::vector<State*> State::getJumps(PositionsVector positions, char team, PositionsVector baseAnchors, map<array<int, 2>, bool> visited) {
+std::vector<State*> State::getJumps(PositionsVector positions, char team, PositionsVector baseAnchors, map<array<int, 2>, bool> *visited) {
 	int numPositions = positions.size();
 	std::vector<State*> jumpChildren{};
 	for (int i = 0; i < numPositions; i++) {
@@ -196,7 +196,7 @@ std::vector<State*> State::getJumps(PositionsVector positions, char team, Positi
 			int yFactor = int(y <= currY) - int(y == currY) - int(y > currY);
 			// Check the next value, while ensuring that it is accessible
 			int newTargetx = currX + xFactor, newTargety = currY + yFactor;
-			if ((newTargetx > 15) || (newTargetx < 0) || (newTargety > 15) || (newTargety < 0) || visited.count({ newTargetx, newTargety }) > 0 || (newTargety == y && newTargetx == x)) {
+			if ((newTargetx > 15) || (newTargetx < 0) || (newTargety > 15) || (newTargety < 0) || visited->count({ newTargetx, newTargety }) > 0 || (newTargety == y && newTargetx == x)) {
 				continue;
 			}
 
@@ -215,7 +215,7 @@ std::vector<State*> State::getJumps(PositionsVector positions, char team, Positi
 				PositionsVector positionPair = { {x, y}, {newTargetx, newTargety} };
 				State* childState = new State(newState, positionPair, this, false);
 				jumpChildren.push_back(childState);
-				visited.insert(std::pair<std::array<int, 2>, bool>({ newTargetx, newTargety}, true));
+				visited->insert(std::pair<std::array<int, 2>, bool>({ newTargetx, newTargety}, true));
 				// Use this to get child states so that you can choose the appropriate child later
 				// Only consider jumps from this new target
 				childState->setChildren(childState->getJumps({ {newTargetx, newTargety} }, team, baseAnchors, visited));

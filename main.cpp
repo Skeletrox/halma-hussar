@@ -52,12 +52,6 @@ long runProgram(float performanceMeasure) {
 		}
 		counter++;
 	}
-	for (int i = 0; i < initState.size(); i++) {
-		for (int j = 0; j < initState[i].size(); j++) {
-			cout << initState[i][j];
-		}
-		cout << endl;
-	}
 	Board board = Board(initState);
 
 	/*
