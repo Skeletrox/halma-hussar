@@ -8,6 +8,7 @@ private:
 	StateVector state;
 	PositionsVector blackBase, whiteBase;
 	std::map<std::array<int, 2>, bool>* visited;
+	std::map<std::array<int, 2>, State*>* solutions;
 
 public:
 	Board(StateVector inpState);

@@ -61,6 +61,7 @@ Board::Board(StateVector inpState) {
 		whiteBase.push_back(currWhite);
 	}
 	visited = new std::map<std::array<int, 2>, bool>;
+	solutions = new std::map<std::array<int, 2>,State*>;
 
 }
 
@@ -79,6 +80,7 @@ PositionsVector Board::getBase(char team) {
 */
 State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector argLocations, float alpha, float beta, bool isMax) {
 	visited->insert(std::pair<std::array<int, 2>, bool>({}, false));
+	solutions->insert(std::pair<std::array<int, 2>, State*>({}, NULL));
 	/*
 		Get the opponent's locations how?
 			Given your pieces, calculate the appropriate PositionsVector for the other player?
@@ -88,7 +90,7 @@ State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector a
 	char team = parent->getState()[argLocations[0][1]][argLocations[0][0]];
 
 	// Create all the child states of this parent
-	parent->setFutureStates(argLocations, visited, team, blackBase);
+	parent->setFutureStates(argLocations, visited, team, blackBase, solutions);
 
 	char opponentTeam = team == 'B' ? 'W' : 'B';
 	PositionsVector opponentPositions = getPositions(parent->getState(), opponentTeam);
@@ -105,7 +107,7 @@ State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector a
 	}
 	// If the node is a MAX expander, set the value to -inf, else set it to inf
 	float v = isMax ? -FLT_MAX + 1 : FLT_MAX;
-
+	 
 	// Get all the children
 	std::vector<State *> children = parent->getChildren();
 	for (int i = 0; i < children.size(); i++) {

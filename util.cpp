@@ -112,33 +112,23 @@ int getDepth(float timeRemaining, long calibratedValue) {
 	/*
 		The hard time limits are as follows:
 			The following time limits are generated on a calibration factor of 1,
-			i.e. incrementing a variable 1000 times takes 1 second
-			Precalculated values for execution time for number of turns is (with a max Jump of 3, i.e. the agent will only jump 3 times):
-			depthMicroSeconds = {
-				1: 25827,
-				2: 197755,
-				3: 6052148,
-				4: 11055020,
-				5: 275469824,
-				6: 721433536
-			}
-			A way to maximize output is to perform thia again on the child node if more time can be spared.
+			i.e. incrementing a variable 1000 times takes 1 miecrosecond
 
-			The time remaining can be expressed in microseconds, and divide by calibratedValue, as a slower computer
+			The time remaining can be expressed in microseconds, and multiply time taken calibratedValue, as a slower computer
 			can cause our values to be awry.
 	*/
-	float timeRemainingMicrosec = timeRemaining * 1000000 / calibratedValue;
-	std::array<long, 6> times{ 25827, 197755, 6052148, 11055020, 275469824, 721433536 };
-
-	// The returnable contains 2 integers, how deep to go, and how many times to go deep
+	float timeRemainingMicrosec = timeRemaining * 1000000;
+	std::cout << "Remaining time: " << timeRemainingMicrosec << " and calibrated value " << calibratedValue <<  std::endl;
+	std::vector<long> times{ 102065, 491439, 29662318, 103081551 };
 	for (int i = 0; i < times.size()-1; i++) {
-		if (timeRemainingMicrosec < times[i + 1]) {
+		std::cout << i << " " << timeRemainingMicrosec << " " << times[i+1] * calibratedValue << std::endl;
+		if (timeRemainingMicrosec < (times[i + 1] * calibratedValue)) {
 			// We don't have enough time to deepen to the next level; stop here
-			std::cout << "Expected duration: " << times[i] << std::endl;
+			std::cout << "Expected duration: " << times[i] << " " << i << std::endl;
 			return i + 1; // Zero-indexed array
 		}
 	}
-	std::cout << "Urgat";
+	std::cout << "Expected duration: " << times[times.size() - 1] << " " << times.size() << std::endl;
 	return times.size();
 }
 
