@@ -88,10 +88,7 @@ void State::computeScore(char player, PositionsVector playersBases) {
 	score = jump ? totalScore + 2 : totalScore;
 }
 
-void State::setFutureStates(PositionsVector positions, int level, map<array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors) {
-	if (level == 0) {
-		return;
-	}
+void State::setFutureStates(PositionsVector positions, map<array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors) {
 	std::vector<State*> allChildren{}, stepChildren, jumpChildren;
 	std::pair<std::vector<State*>, int> stepResult, jumpResult;
 	stepResult = getSteps(positions, team, baseAnchors);

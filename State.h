@@ -30,7 +30,7 @@ public:
 	void setChildrenAndDesired(std::vector<State*> argChildren, int desiredLoc);
 
 	//Future state predictors
-	void setFutureStates(PositionsVector positions, int level, std::map<std::array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors);
+	void setFutureStates(PositionsVector positions, std::map<std::array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors);
 	std::pair<std::vector<State*>, int> getSteps(PositionsVector positions, char team, PositionsVector baseAnchors);
 	std::pair<std::vector<State*>, int> getJumps(PositionsVector positions, char team, PositionsVector baseAnchors, std::map<std::array<int, 2>, bool> *visited);
 

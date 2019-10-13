@@ -77,7 +77,7 @@ PositionsVector Board::getBase(char team) {
 	However, for each piece, there are upto 8, implying upto 152 moves per level, not counting jumps
 	This implies that for a depth of 3 moves, you look at 7 million moves. Use alpha beta pruning?
 */
-State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, PositionsVector argLocations, float alpha, float beta, bool isMax) {
+State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector argLocations, float alpha, float beta, bool isMax) {
 	visited->insert(std::pair<std::array<int, 2>, bool>({}, false));
 	/*
 		Get the opponent's locations how?
@@ -88,7 +88,7 @@ State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, Po
 	char team = parent->getState()[argLocations[0][1]][argLocations[0][0]];
 
 	// Create all the child states of this parent
-	parent->setFutureStates(argLocations, jumpDepth, visited, team, blackBase);
+	parent->setFutureStates(argLocations, visited, team, blackBase);
 
 	char opponentTeam = team == 'B' ? 'W' : 'B';
 	PositionsVector opponentPositions = getPositions(parent->getState(), opponentTeam);
@@ -96,9 +96,10 @@ State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, Po
 	if (turnCount == 0) {
 		/*
 			If isMax is true, then the player is the one making the terminal move, else it's the other player
-			We need to get the utility only for the terminal player
+			We need to get the utility only for the terminal state
 		*/
-		parent->computeScore(team, isMax ? argLocations : opponentPositions);
+		char target = isMax ? team : opponentTeam;
+		parent->computeScore(target, getBase(target));
 		parent->setAlphaBetaPrediction(parent->getScore());
 		return parent;
 	}
@@ -108,22 +109,22 @@ State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, Po
 	// Get all the children
 	std::vector<State *> children = parent->getChildren();
 	for (int i = 0; i < children.size(); i++) {
-		children[i] = generateMinMaxTree(children[i], jumpDepth, turnCount - 1, opponentPositions, alpha, beta, !isMax);
+		children[i] = generateMinMaxTree(children[i], turnCount - 1, opponentPositions, alpha, beta, !isMax);
 		float result = children[i]->getAlphaBetaPrediction();
 		/*
 				Some properties:
 					If isMax is false, then this is a min expander
-					Alpha is always less that Beta
+					Alpha is always less than Beta
 					For a maxNode, v being larger than beta implies that the parent is NOT going to choose this
 					For a minNode, v being less than alpha implies the same
 		*/
 		if ((isMax && result > v) || (!isMax && result < v)) {
-				parent->setDesiredChildLoc(i);
-				v = result;
+			parent->setDesiredChildLoc(i);
+			v = result;
 		}
 		if ((isMax && v >= beta) || (!isMax && result <= alpha)) {
-				parent->setAlphaBetaPrediction(v);
-				return parent;
+			parent->setAlphaBetaPrediction(v);
+			return parent;
 		}
 		if (isMax) {
 			alpha = max(alpha, v);
