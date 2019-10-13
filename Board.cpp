@@ -98,7 +98,7 @@ State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, Po
 			If isMax is true, then the player is the one making the terminal move, else it's the other player
 			We need to get the utility only for the terminal player
 		*/
-		parent->setScore(team, isMax ? argLocations : opponentPositions);
+		parent->computeScore(team, isMax ? argLocations : opponentPositions);
 		parent->setAlphaBetaPrediction(parent->getScore());
 		return parent;
 	}

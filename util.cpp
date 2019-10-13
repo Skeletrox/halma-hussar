@@ -182,3 +182,10 @@ PositionsVector getMirror(PositionsVector original) {
 	}
 	return mirror;
 }
+
+void printPositions(PositionsVector positions) {
+	for (std::array<int, 2> p : positions) {
+		std::cout << p[0] << "," << p[1] << " ";
+	}
+	std::cout << std::endl;
+}

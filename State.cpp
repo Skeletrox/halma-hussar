@@ -17,7 +17,7 @@ float State::getScore() {
 	return score;
 }
 
-void State::setScore(char player, PositionsVector playersBases) {
+void State::computeScore(char player, PositionsVector playersBases) {
 	// Sets the score for this state
 	/*
 		Given a set of bases, the state returns the appropriate score for this player
@@ -85,7 +85,7 @@ void State::setScore(char player, PositionsVector playersBases) {
 	*/
 	float totalScore = piecesInOpponent + directionalScore - piecesInBase;
 	// Prefer a jump over a non-jump
-	score = jump ? totalScore + 1 : totalScore;
+	score = jump ? totalScore + 2 : totalScore;
 }
 
 void State::setFutureStates(PositionsVector positions, int level, map<array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors) {
@@ -114,17 +114,14 @@ void State::setFutureStates(PositionsVector positions, int level, map<array<int,
 	} else {
 		// both exist
 		if (stepChildren[stepChildrenIndex]->getScore() > jumpChildren[jumpChildrenIndex]->getScore()) {
-			cout << "Choosing stepChild over jumpChild with result " << stepChildren[stepChildrenIndex]->getScore() << " over " << jumpChildren[jumpChildrenIndex]->getScore() << endl;
 			desiredChildLoc = stepChildrenIndex; // The better child
 		}
 		else {
-			cout << "Not choosing stepChild over jumpChild with result " << stepChildren[stepChildrenIndex]->getScore() << " being less than " << jumpChildren[jumpChildrenIndex]->getScore() << endl;
 			desiredChildLoc = stepChildren.size() + jumpChildrenIndex; // As jump results are appended AFTER step results 
 		}
 	}
 	allChildren.insert(allChildren.end(), stepChildren.begin(), stepChildren.end());
 	allChildren.insert(allChildren.end(), jumpChildren.begin(), jumpChildren.end());
-	cout << "Desired Child index is " << desiredChildLoc << " for state at " << this << endl;
 	setChildren(allChildren);
 }
 
@@ -189,7 +186,7 @@ std::pair<std::vector<State*>, int> State::getSteps(PositionsVector positions, c
 				PositionsVector positionPair = { {x, y}, {currX, currY} };
 				State* childState = new State(newState, positionPair, this, false);
 				stepChildren.push_back(childState);
-				childState->setScore(team, team == 'B' ? baseAnchors : getMirror(baseAnchors));
+				childState->computeScore(team, team == 'B' ? baseAnchors : getMirror(baseAnchors));
 				if (childState->getScore() > bestStepScore) {
 					bestStepIndex = stepChildren.size() - 1;
 					bestStepScore = childState->getScore();
@@ -211,7 +208,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 	int bestJumpIndex = -1;
 	float bestJumpScore = -FLT_MAX + 1;
 
-	std::vector<State*> jumpChildren{};
+	std::vector<State*> jumpChildren;
 	for (int i = 0; i < numPositions; i++) {
 		// The point is expressed as x, y
 		// See if all adjacent points are okay
@@ -225,7 +222,6 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 		// Initialize the adjacent cells vector
 		vector<array<int, 2>> adjacentCells;
 
-		// counter to handle only 8 points being chosen instead of 9
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
 				int xNow = xAdjacents[j], yNow = yAdjacents[k];
@@ -241,12 +237,15 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 		for (int j = 0; j < adjacentCells.size(); j++) {
 			StateVector newState(state);
 			int currX = adjacentCells[j][0], currY = adjacentCells[j][1];
+			if (newState[currY][currX] == '.') { // Do not jump over an empty cell
+				continue;
+			}
 			int xFactor = int(x <= currX) - int(x == currX) - int(x > currX);
 			int yFactor = int(y <= currY) - int(y == currY) - int(y > currY);
 			// Check the next value, while ensuring that it is accessible
 			int newTargetx = currX + xFactor, newTargety = currY + yFactor;
-			// Ensure that the new target hasn't been already visited and we aren't jumping over an empty cell
-			if ((newTargetx > 15) || (newTargetx < 0) || (newTargety > 15) || (newTargety < 0) || visited->count({ newTargetx, newTargety }) > 0 || (newTargety == y && newTargetx == x) || newState[y][x] == '.') {
+			// Ensure that the new target is reachable, hasn't been already visited
+			if ((newTargetx > 15) || (newTargetx < 0) || (newTargety > 15) || (newTargety < 0) || visited->count({ newTargetx, newTargety }) > 0) {
 				continue;
 			}
 
@@ -263,23 +262,42 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 				newState[newTargety][newTargetx] = newState[y][x] ^ newState[newTargety][newTargetx];
 				newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
 				PositionsVector positionPair = { {x, y}, {newTargetx, newTargety} };
+				visited->insert(std::pair<std::array<int, 2>, bool>({ newTargetx, newTargety }, true));
 				State* childState = new State(newState, positionPair, this, false);
 				/*
 					There are two outcomes, either expand childState and potentially see a drop in utility
-						Or just stop here and, if this is the best you can get, save this.
+						Or just stop here and if this is the best you can get, save this.
 				*/
-				childState->setScore(team, team == 'B' ? baseAnchors : getMirror(baseAnchors));
+				childState->computeScore(team, team == 'B' ? baseAnchors : getMirror(baseAnchors));
+
 				/*
-					The next instance with children expanded
+					Expand this child [perform another jump] and check its utility recursively.
 				*/
 				State* childStateWithChildren = new State(newState, positionPair, this, false);
-				visited->insert(std::pair<std::array<int, 2>, bool>({ newTargetx, newTargety }, true));
+
 				// Use this to get child states so that you can choose the appropriate child later
 				// Only consider jumps from this new target
-				childStateWithChildren->setChildren(childStateWithChildren->getJumps({ {newTargetx, newTargety} }, team, baseAnchors, visited).first);
-				childStateWithChildren->setScore(team, team == 'B' ? baseAnchors : getMirror(baseAnchors));
+				std::pair<std::vector<State*>, int> result = childStateWithChildren->getJumps({ {newTargetx, newTargety} }, team, baseAnchors, visited);
+				if (result.second != -1) {
+					// We can squash a sequence of moves as a child exists for this child
+					childStateWithChildren->setChildrenAndDesired(result.first, result.second);
+					/*
+								"Squash" this sequence of jumps into a single state.
+								Also update the state member to reflect the state of the preferred child.
+					*/
+					State* childOfChild = childStateWithChildren->getDesiredChild();
+					PositionsVector childOfChildPos = childOfChild->getPositions();
+					PositionsVector childOfChildPosNew = PositionsVector(childOfChildPos.begin() + 1, childOfChildPos.end());
+					PositionsVector squashedPositions = childStateWithChildren->getPositions();
+					squashedPositions.insert(squashedPositions.end(), childOfChildPosNew.begin(), childOfChildPosNew.end());
+					childStateWithChildren->setState(childOfChild->getState());
+					childStateWithChildren->setPositions(squashedPositions);
+					childStateWithChildren->computeScore(team, team == 'B' ? baseAnchors : getMirror(baseAnchors));
+				} else {
+					childStateWithChildren->setScore(childState->getScore());
+				}
 				float singleScore = childState->getScore(), expandedScore = childStateWithChildren->getScore();
-				if (singleScore > expandedScore) {
+				if (singleScore >= expandedScore) {
 					jumpChildren.push_back(childState);
 					if (singleScore > bestJumpScore) {
 						bestJumpScore = singleScore;
@@ -290,6 +308,8 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 					if (expandedScore > bestJumpScore) {
 						bestJumpScore = expandedScore;
 						bestJumpIndex = jumpChildren.size() - 1;
+						setDesiredChildLoc(bestJumpIndex);
+						setScore(bestJumpScore);
 					}
 				}
 			}
@@ -333,4 +353,21 @@ int State::getDesiredChildLoc() {
 
 PositionsVector State::getPositions() {
 	return positions;
+}
+
+void State::setScore(float newScore) {
+	score = newScore;
+}
+
+void State::setState(StateVector s) {
+	state = s;
+}
+
+void State::setPositions(PositionsVector p) {
+	positions = p;
+}
+
+void State::setChildrenAndDesired(std::vector<State*> argChildren, int desiredLoc) {
+	children = argChildren;
+	desiredChildLoc = desiredLoc;
 }

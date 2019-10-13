@@ -27,6 +27,7 @@ public:
 	void setDesiredChildLoc(int i);
 	int getDesiredChildLoc();
 	void setChildren(std::vector<State *> argChildren);
+	void setChildrenAndDesired(std::vector<State*> argChildren, int desiredLoc);
 
 	//Future state predictors
 	void setFutureStates(PositionsVector positions, int level, std::map<std::array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors);
@@ -34,14 +35,17 @@ public:
 	std::pair<std::vector<State*>, int> getJumps(PositionsVector positions, char team, PositionsVector baseAnchors, std::map<std::array<int, 2>, bool> *visited);
 
 	// Getter and setter for score and alphaBetaPrediction
-	void setScore(char player, PositionsVector playersBases);
+	void computeScore(char player, PositionsVector playersBases);
+	void setScore(float newScore);
 	float getScore();
 	void setAlphaBetaPrediction(float value);
 	float getAlphaBetaPrediction();
 
-	// Getter for state
+	// Getter and setter for state and positions
 	StateVector getState();
+	void setState(StateVector s);
 	PositionsVector getPositions();
+	void setPositions(PositionsVector p);
 	
 };
 

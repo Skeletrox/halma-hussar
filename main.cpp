@@ -25,7 +25,7 @@ long runProgram(float performanceMeasure) {
 				.: Empty Cell
 	*/
 	ifstream inputFile;
-	inputFile.open("./input.txt");
+	inputFile.open("./input2.txt");
 	StateVector initState;
 	string executionType, s;
 	char team = 'B';
@@ -77,9 +77,11 @@ long runProgram(float performanceMeasure) {
 	*/
 	auto start = chrono::high_resolution_clock::now();
 	currState = board.generateMinMaxTree(currState, playerDepth, depth, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
+	/*
 	for (State* s : currState->getChildren()) {
 		cout << s->getScore() << endl;
-	}
+		printPositions(s->getPositions());
+	}*/
 	State *desiredChild = currState->getDesiredChild();
 	cout << endl << "desired child has result " << desiredChild->getScore() << " and is at index " << currState->getDesiredChildLoc() << endl;
 	cout << "Root is at " << currState << endl;

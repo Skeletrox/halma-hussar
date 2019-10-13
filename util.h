@@ -27,3 +27,5 @@ bool isIllegal(int xStart, int yStart, int xEnd, int yEnd, PositionsVector baseA
 bool found(int x, int y, PositionsVector baseAnchors, bool reverse);
 
 PositionsVector getMirror(PositionsVector original);
+
+void printPositions(PositionsVector positions);
