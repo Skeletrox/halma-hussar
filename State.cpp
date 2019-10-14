@@ -1,6 +1,7 @@
 #include "State.h"
 #include "util.h"
 #include <array>
+#include <math.h>
 
 using namespace std;
 
@@ -18,12 +19,19 @@ float State::getScore() {
 }
 
 void State::computeScore(char player, PositionsVector playersBases) {
+
+	// Where did we start? Where will we end?
+	array<int, 2> start = positions[0], end = positions[positions.size() - 1];
+
 	// Sets the score for this state
 	/*
 		Given a set of bases, the state returns the appropriate score for this player
 			Reward for: Pieces in opponent's base, pieces towards opponent's base
 			Punish for: Pieces in own base, pieces going everywhere except towards opponent's base
 
+		If this is a victory condition, then set the score to FLT_MAX
+		If this is a loss condition, then set the score to FLT_MIN
+		If this state was achieved by means of a jump, the change in utility is double for the point at the jump
 	*/
 	
 	// Get number of pieces of the player in his own base and the number of pieces in the opponent's base
@@ -35,17 +43,35 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			piecesInOpponent++;
 		}
 	}
-	// The intensity of the number of pieces in the base
-	piecesInBase /= 19;
-	piecesInOpponent /= 19;
 
-	/* 
+	// Do the same for the opponent
+	char opponent = player == 'B' ? 'W' : 'B';
+	PositionsVector opponentBases = getMirror(playersBases);
+	float opponentPiecesInBase = 0.0, opponentPiecesInOpponent = 0.0;
+	for (std::array<int, 2> loc : opponentBases) {
+		if (state[loc[1]][loc[0]] == opponent) {
+			opponentPiecesInOpponent++;
+		}
+		else if (state[15 - loc[1]][15 - loc[0]] == opponent) {
+			opponentPiecesInBase++;
+		}
+	}
+
+	// if at least one piece is in opponent bases and the opponent base is filled, you win. And vice-versa.
+	if (piecesInOpponent > 0 && (piecesInOpponent + opponentPiecesInOpponent) == 19) {
+		score = FLT_MAX;
+		return;
+	}
+	else if (opponentPiecesInBase > 0 && (piecesInBase + opponentPiecesInBase) == 19) {
+		score = FLT_MIN;
+		return;
+	}
+
+	/*	We want our pieces to move like a phalanx. Reward behavior that exhibits phalanx-like movement. 
 		Get the closeness of the points from their "target" destinations, i.e. their appropriate goals
-		The most efficient result happens when the pieces move in like a phalanx
 		Get the relativity of superimposition of pieces with the region y = x + 4 and y = x - 4.
 		If all pieces are in this region then the score is 1, else reduce using distance of the point from y = x
 	*/
-
 	// Only perform the above step for 19 pieces
 	int pieceCounter = 0;
 	float directionalScore = 0.0;
@@ -75,17 +101,45 @@ void State::computeScore(char player, PositionsVector playersBases) {
 		}
 	}
 
-	// Get the average score
-	directionalScore /= 19;
-
 	/*
 		Bring the self base score, diversion score and opponent base score together
 			The opponent base score and diversion score affect the score POSITIVELY
 			The self base score affects the score NEGATIVELY
 	*/
-	float totalScore = piecesInOpponent + directionalScore - piecesInBase;
-	// Prefer a jump over a non-jump
-	score = jump ? totalScore + 2 : totalScore;
+	float totalScore = piecesInOpponent + directionalScore - piecesInBase - opponentPiecesInBase + opponentPiecesInOpponent;
+
+	// Reward positive jumps, punish negative jumps
+	/*
+		If the destination is closer to the base / a worse position than the start, punish. Else reward.
+	/*
+		Jumps that are beneficial must be rewarded more than normal moves and vice-versa
+		Choose the following metrics for the start and the end:
+			1. The closeness of start and end to their own base
+			2. The phalanx-ness of start and end [is the move getting closer to the phalanx formation or going away from it?]
+			3. The closeness of start and end to their opponent's base
+	*/
+	float startUtility = utility(start[0], start[1]), endUtility = utility(end[0], end[1]);
+	float startToBase = sqrt(pow((start[0] - playersBases[0][0]),2) + pow((start[1] - playersBases[0][1]), 2));
+	float endToBase = sqrt(pow((end[0] - playersBases[0][0]), 2) + pow((end[1] - playersBases[0][1]), 2));
+	float startToOpponent = sqrt(pow((start[0] - 15 + playersBases[0][0]), 2) + pow((start[1] - 15 + playersBases[0][1]), 2));
+	float endToOpponent = sqrt(pow((end[0] - 15 + playersBases[0][0]), 2) + pow((end[1] - 15 + playersBases[0][1]), 2));
+
+	// Compare start and end utilities. Higher utility means a worse function [name change is required, true]
+	float relativeUtility = (max(startUtility, endUtility) + 0.01) / (min(startUtility, endUtility ) + 0.01) * (startUtility >= endUtility ? 1 : 0.5);
+
+	// Compare distances of points from base. Try to be as far away from base as possible.
+	float relativeBaseDistance = (max(startToBase, endToBase) + 0.01)/ (min(startToBase, endToBase) + 0.01) * (startToBase <= endToBase ? 1 : -1);
+
+	// Compare distances of points from opponent's base. Try to be as close to the opposite base as possible.
+	float relativeOpponentDistance = (max(startToOpponent, endToOpponent) + 0.01) / (min(startToOpponent, endToOpponent) + 0.01) * (startToOpponent >= endToOpponent ? 1 : -1);
+	float originalScore = totalScore;
+	totalScore *= (relativeUtility + relativeBaseDistance + relativeOpponentDistance);
+	if (jump) {
+		cout << "\n-------------------------------\nJUMP\n-----------------------------------\n";
+	}
+	cout << start[0] << "," << start[1] << " to " << end[0] << "," << end[1] << " has score " << totalScore << " instead of " << originalScore;
+	cout << ". Base is at " << playersBases[0][0] << "," << playersBases[0][1] << " and opponent base is at " << 15 - playersBases[0][0] << "," << 15 - playersBases[0][1] << endl;
+	score = totalScore;
 }
 
 void State::setFutureStates(PositionsVector positions, int level, map<array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors) {
@@ -199,6 +253,7 @@ std::pair<std::vector<State*>, int> State::getSteps(PositionsVector positions, c
 }
 
 std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, char team, PositionsVector baseAnchors, map<array<int, 2>, bool> *visited) {
+	
 	int numPositions = positions.size();
 
 	/*
@@ -215,6 +270,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 		array<int, 2> current = positions[i];
 		int x = current[0];
 		int y = current[1];
+		visited->insert(std::pair<std::array<int, 2>, bool>({ x, y }, true));
 		// Get adjacent positions
 		int xAdjacents[3] = { x - 1, x, x + 1 };
 		int yAdjacents[3] = { y - 1, y, y + 1 };
