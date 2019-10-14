@@ -25,7 +25,7 @@ long runProgram(float performanceMeasure) {
 				.: Empty Cell
 	*/
 	ifstream inputFile;
-	inputFile.open("./input.txt");
+	inputFile.open("./input2.txt");
 	StateVector initState;
 	string executionType, s;
 	char team = 'B';

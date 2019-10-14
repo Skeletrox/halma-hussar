@@ -21,9 +21,6 @@ float State::getScore() {
 
 void State::computeScore(char player, PositionsVector playersBases) {
 
-	// Where did we start? Where will we end?
-	array<int, 2> start = positions[0], end = positions[positions.size() - 1];
-
 	// Sets the score for this state
 	/*
 		Given a set of bases, the state returns the appropriate score for this player
@@ -88,15 +85,15 @@ void State::computeScore(char player, PositionsVector playersBases) {
 				// Consider an anomaly if the point is outside y = x + 4 or y = x  - 4
 				// All points on y = x + 4 or y = x - 4 are at a distance of (4-0)/(sqrt(2)) from y = x
 				if (utilityScore > 2.828427) {
-					directionalScore += 1 / utilityScore;
+					directionalScore += 1.0 / utilityScore;
 				} else {
-					directionalScore += 1;
+					directionalScore += 1.0;
 				}
-			}
-			// We have examined all 19 pieces
-			if (++pieceCounter == 19) {
-				breakable = true;
-				break;
+				// We have examined all 19 pieces
+				if (++pieceCounter == 19) {
+					breakable = true;
+					break;
+				}
 			}
 		}
 		// No need to loop further
@@ -113,7 +110,7 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			The self base score affects the score NEGATIVELY
 			The furtherness from your own base and closeness to the opponent's base also affects the score POSITIVELY
 	*/
-	float totalScore = piecesInOpponent + directionalScore - piecesInBase + fromBaseScore + toOpponentScore;
+	float totalScore = piecesInOpponent + directionalScore - piecesInBase + fromBaseScore;
 	score = totalScore;
 }
 

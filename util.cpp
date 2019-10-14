@@ -45,7 +45,7 @@ bool isJump(PositionsVector positions) {
 
 // Utility function, defined as the distance from (x, y) to y = x
 float utility(int x, int y) {
-	float numerator = float(x) - float(y);
+	float numerator = abs(float(x) - float(y));
 	return ( numerator / float(sqrt(2)));
 }
 
