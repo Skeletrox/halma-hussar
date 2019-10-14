@@ -61,6 +61,7 @@ Board::Board(StateVector inpState) {
 		whiteBase.push_back(currWhite);
 	}
 	visited = new std::map<std::array<int, 2>, bool>;
+	solutions = new std::map<std::array<int, 2>,State*>;
 
 }
 
@@ -77,8 +78,9 @@ PositionsVector Board::getBase(char team) {
 	However, for each piece, there are upto 8, implying upto 152 moves per level, not counting jumps
 	This implies that for a depth of 3 moves, you look at 7 million moves. Use alpha beta pruning?
 */
-State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, PositionsVector argLocations, float alpha, float beta, bool isMax) {
+State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector argLocations, float alpha, float beta, bool isMax) {
 	visited->insert(std::pair<std::array<int, 2>, bool>({}, false));
+	solutions->insert(std::pair<std::array<int, 2>, State*>({}, NULL));
 	/*
 		Get the opponent's locations how?
 			Given your pieces, calculate the appropriate PositionsVector for the other player?
@@ -96,7 +98,7 @@ State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, Po
 	if (turnCount == 0) {
 		/*
 			If isMax is true, then the player is the one making the terminal move, else it's the other player
-			We need to get the utility only for the terminal player
+			We need to get the utility only for the terminal state
 		*/
 		char target = isMax ? team : opponentTeam;
 		parent->computeScore(target, getBase(target))	;
@@ -105,11 +107,11 @@ State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, Po
 	}
 	// If the node is a MAX expander, set the value to -inf, else set it to inf
 	float v = isMax ? -FLT_MAX + 1 : FLT_MAX;
-
+	 
 	// Get all the children
 	std::vector<State *> children = parent->getChildren();
 	for (int i = 0; i < children.size(); i++) {
-		children[i] = generateMinMaxTree(children[i], jumpDepth, turnCount - 1, opponentPositions, alpha, beta, !isMax);
+		children[i] = generateMinMaxTree(children[i], turnCount - 1, opponentPositions, alpha, beta, !isMax);
 		float result = children[i]->getAlphaBetaPrediction();
 		/*
 				Some properties:
@@ -121,12 +123,12 @@ State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, Po
 		std::cout << "For parent " << parent << " result is " << result << " and v is " << v << " for child at " << children[i] << " having index " << i << std::endl;
 		if ((isMax && result > v) || (!isMax && result < v)) {
 			std::cout << "Setting desired child location for " << parent << " at " << i << std::endl;
-				parent->setDesiredChildLoc(i);
-				v = result;
+			parent->setDesiredChildLoc(i);
+			v = result;
 		}
 		if ((isMax && v >= beta) || (!isMax && result <= alpha)) {
-				parent->setAlphaBetaPrediction(v);
-				return parent;
+			parent->setAlphaBetaPrediction(v);
+			return parent;
 		}
 		if (isMax) {
 			alpha = max(alpha, v);

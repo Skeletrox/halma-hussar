@@ -8,10 +8,11 @@ private:
 	StateVector state;
 	PositionsVector blackBase, whiteBase;
 	std::map<std::array<int, 2>, bool>* visited;
+	std::map<std::array<int, 2>, State*>* solutions;
 
 public:
 	Board(StateVector inpState);
 	PositionsVector getBase(char team);
-	State* generateMinMaxTree(State *s, int jumpDepth, int turnCount, PositionsVector argLocations, float alpha, float beta, bool max);
+	State* generateMinMaxTree(State *s, int turnCount, PositionsVector argLocations, float alpha, float beta, bool max);
 };
 

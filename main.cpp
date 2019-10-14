@@ -66,7 +66,6 @@ long runProgram(float performanceMeasure) {
 	int depth = getDepth(timeLeft, performanceMeasure);
 	PositionsVector playerPositions = getPositions(initState, team);
 	Player player = Player(team, playerPositions);
-	int playerDepth = 4;
 	/*
 		Generate the minmax tree with the following attributes:
 			The current State
@@ -76,7 +75,7 @@ long runProgram(float performanceMeasure) {
 			Alpha and Beta [For Alpha-Beta Pruning]
 	*/
 	auto start = chrono::high_resolution_clock::now();
-	currState = board.generateMinMaxTree(currState, playerDepth, 1, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
+	currState = board.generateMinMaxTree(currState, depth, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
 	/*
 	for (State* s : currState->getChildren()) {
 		cout << s->getScore() << endl;
