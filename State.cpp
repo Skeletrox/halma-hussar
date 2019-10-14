@@ -75,16 +75,19 @@ void State::computeScore(char player, PositionsVector playersBases) {
 	// Only perform the above step for 19 pieces
 	int pieceCounter = 0;
 	float directionalScore = 0.0;
+	float fromBaseScore = 0.0, toOpponentScore = 0.0;
 	bool breakable = false;
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
 			if (state[i][j] == player) {
 				// get the utility of this point [the distance from y = x]
-				float score = utility(j, i);
+				float utilityScore = utility(j, i);
+				fromBaseScore += sqrt(pow(j - playersBases[0][0], 2) + pow(i - playersBases[0][1], 2));
+				toOpponentScore += sqrt(pow(j - opponentBases[0][0], 2) + pow(i - opponentBases[0][1], 2));
 				// Consider an anomaly if the point is outside y = x + 4 or y = x  - 4
 				// All points on y = x + 4 or y = x - 4 are at a distance of (4-0)/(sqrt(2)) from y = x
-				if (score > 2.828427) {
-					directionalScore += 1 / score;
+				if (utilityScore > 2.828427) {
+					directionalScore += 1 / utilityScore;
 				} else {
 					directionalScore += 1;
 				}
@@ -101,44 +104,15 @@ void State::computeScore(char player, PositionsVector playersBases) {
 		}
 	}
 
+	// The opponent score is less when you are closer to the opposite base. Subtract from a constant to ensure maximizability.
+	toOpponentScore = 404 - toOpponentScore; // 15*(19*sqrt(2)) which is the maximum distance of a point from the oppponent base anchor
 	/*
 		Bring the self base score, diversion score and opponent base score together
 			The opponent base score and diversion score affect the score POSITIVELY
 			The self base score affects the score NEGATIVELY
+			The furtherness from your own base and closeness to the opponent's base also affects the score POSITIVELY
 	*/
-	float totalScore = piecesInOpponent + directionalScore - piecesInBase - opponentPiecesInBase + opponentPiecesInOpponent;
-
-	// Reward positive jumps, punish negative jumps
-	/*
-		If the destination is closer to the base / a worse position than the start, punish. Else reward.
-	/*
-		Jumps that are beneficial must be rewarded more than normal moves and vice-versa
-		Choose the following metrics for the start and the end:
-			1. The closeness of start and end to their own base
-			2. The phalanx-ness of start and end [is the move getting closer to the phalanx formation or going away from it?]
-			3. The closeness of start and end to their opponent's base
-	*/
-	float startUtility = utility(start[0], start[1]), endUtility = utility(end[0], end[1]);
-	float startToBase = sqrt(pow((start[0] - playersBases[0][0]),2) + pow((start[1] - playersBases[0][1]), 2));
-	float endToBase = sqrt(pow((end[0] - playersBases[0][0]), 2) + pow((end[1] - playersBases[0][1]), 2));
-	float startToOpponent = sqrt(pow((start[0] - 15 + playersBases[0][0]), 2) + pow((start[1] - 15 + playersBases[0][1]), 2));
-	float endToOpponent = sqrt(pow((end[0] - 15 + playersBases[0][0]), 2) + pow((end[1] - 15 + playersBases[0][1]), 2));
-
-	// Compare start and end utilities. Higher utility means a worse function [name change is required, true]
-	float relativeUtility = (max(startUtility, endUtility) + 0.01) / (min(startUtility, endUtility ) + 0.01) * (startUtility >= endUtility ? 1 : 0.5);
-
-	// Compare distances of points from base. Try to be as far away from base as possible.
-	float relativeBaseDistance = (max(startToBase, endToBase) + 0.01)/ (min(startToBase, endToBase) + 0.01) * (startToBase <= endToBase ? 1 : -1);
-
-	// Compare distances of points from opponent's base. Try to be as close to the opposite base as possible.
-	float relativeOpponentDistance = (max(startToOpponent, endToOpponent) + 0.01) / (min(startToOpponent, endToOpponent) + 0.01) * (startToOpponent >= endToOpponent ? 1 : -1);
-	float originalScore = totalScore;
-	totalScore *= (relativeUtility + relativeBaseDistance + relativeOpponentDistance);
-	if (jump) {
-		cout << "\n-------------------------------\nJUMP\n-----------------------------------\n";
-	}
-	cout << start[0] << "," << start[1] << " to " << end[0] << "," << end[1] << " has score " << totalScore << " instead of " << originalScore;
-	cout << ". Base is at " << playersBases[0][0] << "," << playersBases[0][1] << " and opponent base is at " << 15 - playersBases[0][0] << "," << 15 - playersBases[0][1] << endl;
+	float totalScore = piecesInOpponent + directionalScore - piecesInBase + fromBaseScore + toOpponentScore;
 	score = totalScore;
 }
 
@@ -230,7 +204,6 @@ std::pair<std::vector<State*>, int> State::getSteps(PositionsVector positions, c
 			// If there is something in that cell, check if it can be jumped over
 			if (newState[currY][currX] == '.') {
 				// This is an empty cell. Swap the position with it and append to the FutureStates vector.
-
 				//XOR swapping
 				newState[y][x] = newState[y][x] ^ newState[currY][currX];
 				newState[currY][currX] = newState[y][x] ^ newState[currY][currX];
@@ -426,4 +399,8 @@ void State::setPositions(PositionsVector p) {
 void State::setChildrenAndDesired(std::vector<State*> argChildren, int desiredLoc) {
 	children = argChildren;
 	desiredChildLoc = desiredLoc;
+}
+
+bool State::isStateAJump() {
+	return jump;
 }

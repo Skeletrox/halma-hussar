@@ -89,7 +89,7 @@ State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, Po
 
 	// Create all the child states of this parent
 	parent->setFutureStates(argLocations, jumpDepth, visited, team, blackBase);
-
+	std::cout << "Best child for " << parent << " is at " << parent->getDesiredChildLoc() << " with score " << parent->getDesiredChild()->getScore() << " and address " << parent->getDesiredChild() << std::endl;
 	char opponentTeam = team == 'B' ? 'W' : 'B';
 	PositionsVector opponentPositions = getPositions(parent->getState(), opponentTeam);
 	// If we have reached the depth then we shall return the utility of this board
@@ -98,7 +98,8 @@ State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, Po
 			If isMax is true, then the player is the one making the terminal move, else it's the other player
 			We need to get the utility only for the terminal player
 		*/
-		parent->computeScore(team, isMax ? argLocations : opponentPositions);
+		char target = isMax ? team : opponentTeam;
+		parent->computeScore(target, getBase(target))	;
 		parent->setAlphaBetaPrediction(parent->getScore());
 		return parent;
 	}
@@ -113,11 +114,13 @@ State* Board::generateMinMaxTree(State *parent, int jumpDepth, int turnCount, Po
 		/*
 				Some properties:
 					If isMax is false, then this is a min expander
-					Alpha is always less that Beta
+					Alpha is always less than Beta
 					For a maxNode, v being larger than beta implies that the parent is NOT going to choose this
 					For a minNode, v being less than alpha implies the same
 		*/
+		std::cout << "For parent " << parent << " result is " << result << " and v is " << v << " for child at " << children[i] << " having index " << i << std::endl;
 		if ((isMax && result > v) || (!isMax && result < v)) {
+			std::cout << "Setting desired child location for " << parent << " at " << i << std::endl;
 				parent->setDesiredChildLoc(i);
 				v = result;
 		}

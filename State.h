@@ -46,6 +46,9 @@ public:
 	void setState(StateVector s);
 	PositionsVector getPositions();
 	void setPositions(PositionsVector p);
+
+	// jump getter
+	bool isStateAJump();
 	
 };
 

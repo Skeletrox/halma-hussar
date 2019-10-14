@@ -25,7 +25,7 @@ long runProgram(float performanceMeasure) {
 				.: Empty Cell
 	*/
 	ifstream inputFile;
-	inputFile.open("./input2.txt");
+	inputFile.open("./input.txt");
 	StateVector initState;
 	string executionType, s;
 	char team = 'B';
@@ -76,24 +76,17 @@ long runProgram(float performanceMeasure) {
 			Alpha and Beta [For Alpha-Beta Pruning]
 	*/
 	auto start = chrono::high_resolution_clock::now();
-	currState = board.generateMinMaxTree(currState, playerDepth, depth, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
+	currState = board.generateMinMaxTree(currState, playerDepth, 1, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
 	/*
 	for (State* s : currState->getChildren()) {
 		cout << s->getScore() << endl;
 		printPositions(s->getPositions());
 	}*/
 	State *desiredChild = currState->getDesiredChild();
-	cout << endl << "desired child has result " << desiredChild->getScore() << " and is at index " << currState->getDesiredChildLoc() << endl;
+	cout << endl << "desired child has result " << desiredChild->getScore() << ", address " << desiredChild << " and is at index " << currState->getDesiredChildLoc() << endl;
+	cout << "Alpha Beta value for desired child is " << desiredChild->getAlphaBetaPrediction() << endl;
 	cout << "Root is at " << currState << endl;
-	string result;
-	PositionsVector move = desiredChild->getPositions();
-	result.append(isJump(move) ? "J " : "E ");
-	for (array<int, 2> m : move) {
-		char *currstring = (char*) malloc(40);
-		snprintf(currstring, 40, "%d,%d ", m[0], m[1]);
-		result.append(currstring);
-	}
-	char* immutableResult = (char*)malloc(result.size());
+	string result = generateString(desiredChild->getPositions(), desiredChild->isStateAJump());
 	ofstream outFile;
 	outFile.open("./output.txt");
 	outFile << result;
@@ -101,6 +94,7 @@ long runProgram(float performanceMeasure) {
 	auto end = chrono::high_resolution_clock::now();
 	long actual = chrono::duration_cast<chrono::microseconds>(end - start).count();
 	cout << "Actual duration: " << actual << endl;
+	PositionsVector dummy = { {0, 1}, {2, 3}, {4, 5} };
 	return actual;
 }
 

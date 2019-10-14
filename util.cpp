@@ -135,7 +135,7 @@ int getDepth(float timeRemaining, long calibratedValue) {
 		if (timeRemainingMicrosec < times[i + 1]) {
 			// We don't have enough time to deepen to the next level; stop here
 			std::cout << "Expected duration: " << times[i] << std::endl;
-			return i + 1; // Zero-indexed array
+			return i;
 		}
 	}
 	std::cout << "Urgat";
@@ -188,4 +188,21 @@ void printPositions(PositionsVector positions) {
 		std::cout << p[0] << "," << p[1] << " ";
 	}
 	std::cout << std::endl;
+}
+
+std::string generateString(PositionsVector positions, bool isJump) {
+	std::string returnable = "";
+	for (int i = 0; i < positions.size() - 1; i++) {
+		if (isJump) {
+			returnable += "J ";
+		}
+		else {
+			returnable += "E ";
+		}
+		std::array<int, 2> first = positions[i], second = positions[i + 1];
+		char* currentLine = (char*)malloc(40 * sizeof(char));
+		snprintf(currentLine, 40, "%d,%d %d,%d\n", first[0], first[1], second[0], second[1]);
+		returnable.append(currentLine);
+	}
+	return returnable;
 }
