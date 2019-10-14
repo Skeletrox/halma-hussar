@@ -90,8 +90,6 @@ State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector a
 	char team = parent->getState()[argLocations[0][1]][argLocations[0][0]];
 
 	// Create all the child states of this parent
-	parent->setFutureStates(argLocations, visited, team, blackBase, solutions);
-
 	char opponentTeam = team == 'B' ? 'W' : 'B';
 	PositionsVector opponentPositions = getPositions(parent->getState(), opponentTeam);
 	// If we have reached the depth then we shall return the utility of this board
@@ -105,6 +103,7 @@ State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector a
 		parent->setAlphaBetaPrediction(parent->getScore());
 		return parent;
 	}
+	parent->setFutureStates(argLocations, visited, team, blackBase, solutions);
 	// If the node is a MAX expander, set the value to -inf, else set it to inf
 	float v = isMax ? -FLT_MAX + 1 : FLT_MAX;
 	 

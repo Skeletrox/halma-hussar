@@ -3,6 +3,7 @@
 #include "State.h"
 #include <limits>
 #include <cfloat>
+#include <string>
 
 PositionsVector getPositions(StateVector boardState, char team);
 
@@ -29,3 +30,5 @@ bool found(int x, int y, PositionsVector baseAnchors, bool reverse);
 PositionsVector getMirror(PositionsVector original);
 
 void printPositions(PositionsVector positions);
+
+std::string generateString(PositionsVector positions, bool isJump);

@@ -1,6 +1,7 @@
 #include "State.h"
 #include "util.h"
 #include <array>
+#include <math.h>
 
 using namespace std;
 
@@ -19,12 +20,16 @@ float State::getScore() {
 }
 
 void State::computeScore(char player, PositionsVector playersBases) {
+
 	// Sets the score for this state
 	/*
 		Given a set of bases, the state returns the appropriate score for this player
 			Reward for: Pieces in opponent's base, pieces towards opponent's base
 			Punish for: Pieces in own base, pieces going everywhere except towards opponent's base
 
+		If this is a victory condition, then set the score to FLT_MAX
+		If this is a loss condition, then set the score to FLT_MIN
+		If this state was achieved by means of a jump, the change in utility is double for the point at the jump
 	*/
 	
 	// Get number of pieces of the player in his own base and the number of pieces in the opponent's base
@@ -36,38 +41,59 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			piecesInOpponent++;
 		}
 	}
-	// The intensity of the number of pieces in the base
-	piecesInBase /= 19;
-	piecesInOpponent /= 19;
 
-	/* 
+	// Do the same for the opponent
+	char opponent = player == 'B' ? 'W' : 'B';
+	PositionsVector opponentBases = getMirror(playersBases);
+	float opponentPiecesInBase = 0.0, opponentPiecesInOpponent = 0.0;
+	for (std::array<int, 2> loc : opponentBases) {
+		if (state[loc[1]][loc[0]] == opponent) {
+			opponentPiecesInOpponent++;
+		}
+		else if (state[15 - loc[1]][15 - loc[0]] == opponent) {
+			opponentPiecesInBase++;
+		}
+	}
+
+	// if at least one piece is in opponent bases and the opponent base is filled, you win. And vice-versa.
+	if (piecesInOpponent > 0 && (piecesInOpponent + opponentPiecesInOpponent) == 19) {
+		score = FLT_MAX;
+		return;
+	}
+	else if (opponentPiecesInBase > 0 && (piecesInBase + opponentPiecesInBase) == 19) {
+		score = FLT_MIN;
+		return;
+	}
+
+	/*	We want our pieces to move like a phalanx. Reward behavior that exhibits phalanx-like movement. 
 		Get the closeness of the points from their "target" destinations, i.e. their appropriate goals
-		The most efficient result happens when the pieces move in like a phalanx
 		Get the relativity of superimposition of pieces with the region y = x + 4 and y = x - 4.
 		If all pieces are in this region then the score is 1, else reduce using distance of the point from y = x
 	*/
-
 	// Only perform the above step for 19 pieces
 	int pieceCounter = 0;
 	float directionalScore = 0.0;
+	float fromBaseScore = 0.0, toOpponentScore = 0.0;
 	bool breakable = false;
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
 			if (state[i][j] == player) {
 				// get the utility of this point [the distance from y = x]
-				float score = utility(j, i);
+				float utilityScore = utility(j, i);
+				fromBaseScore += sqrt(pow(j - playersBases[0][0], 2) + pow(i - playersBases[0][1], 2));
+				toOpponentScore += sqrt(pow(j - opponentBases[0][0], 2) + pow(i - opponentBases[0][1], 2));
 				// Consider an anomaly if the point is outside y = x + 4 or y = x  - 4
 				// All points on y = x + 4 or y = x - 4 are at a distance of (4-0)/(sqrt(2)) from y = x
-				if (score > 2.828427) {
-					directionalScore += 1 / score;
+				if (utilityScore > 2.828427) {
+					directionalScore += 1.0 / utilityScore;
 				} else {
-					directionalScore += 1;
+					directionalScore += 1.0;
 				}
-			}
-			// We have examined all 19 pieces
-			if (++pieceCounter == 19) {
-				breakable = true;
-				break;
+				// We have examined all 19 pieces
+				if (++pieceCounter == 19) {
+					breakable = true;
+					break;
+				}
 			}
 		}
 		// No need to loop further
@@ -76,17 +102,16 @@ void State::computeScore(char player, PositionsVector playersBases) {
 		}
 	}
 
-	// Get the average score
-	directionalScore /= 19;
-
+	// The opponent score is less when you are closer to the opposite base. Subtract from a constant to ensure maximizability.
+	toOpponentScore = 404 - toOpponentScore; // 15*(19*sqrt(2)) which is the maximum distance of a point from the oppponent base anchor
 	/*
 		Bring the self base score, diversion score and opponent base score together
 			The opponent base score and diversion score affect the score POSITIVELY
 			The self base score affects the score NEGATIVELY
+			The furtherness from your own base and closeness to the opponent's base also affects the score POSITIVELY
 	*/
-	float totalScore = piecesInOpponent + directionalScore - piecesInBase;
-	// Prefer a jump over a non-jump
-	score = jump ? totalScore + 2 : totalScore;
+	float totalScore = piecesInOpponent + directionalScore - piecesInBase + fromBaseScore;
+	score = totalScore;
 }
 
 void State::setFutureStates(PositionsVector positions, map<array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors, map<array<int, 2>, State*>* solutions) {
@@ -174,7 +199,6 @@ std::pair<std::vector<State*>, int> State::getSteps(PositionsVector positions, c
 			// If there is something in that cell, check if it can be jumped over
 			if (newState[currY][currX] == '.') {
 				// This is an empty cell. Swap the position with it and append to the FutureStates vector.
-
 				//XOR swapping
 				newState[y][x] = newState[y][x] ^ newState[currY][currX];
 				newState[currY][currX] = newState[y][x] ^ newState[currY][currX];
@@ -213,6 +237,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 		array<int, 2> current = positions[i];
 		int x = current[0];
 		int y = current[1];
+		visited->insert(std::pair<std::array<int, 2>, bool>({ x, y }, true));
 		// Get adjacent positions
 		int xAdjacents[3] = { x - 1, x, x + 1 };
 		int yAdjacents[3] = { y - 1, y, y + 1 };
@@ -382,4 +407,8 @@ void State::setPositions(PositionsVector p) {
 void State::setChildrenAndDesired(std::vector<State*> argChildren, int desiredLoc) {
 	children = argChildren;
 	desiredChildLoc = desiredLoc;
+}
+
+bool State::isStateAJump() {
+	return jump;
 }

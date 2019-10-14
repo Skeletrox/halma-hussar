@@ -45,7 +45,7 @@ bool isJump(PositionsVector positions) {
 
 // Utility function, defined as the distance from (x, y) to y = x
 float utility(int x, int y) {
-	float numerator = float(x) - float(y);
+	float numerator = abs(float(x) - float(y));
 	return ( numerator / float(sqrt(2)));
 }
 
@@ -125,7 +125,7 @@ int getDepth(float timeRemaining, long calibratedValue) {
 		if (timeRemainingMicrosec < (times[i + 1] * calibratedValue)) {
 			// We don't have enough time to deepen to the next level; stop here
 			std::cout << "Expected duration: " << times[i] << " " << i << std::endl;
-			return i + 1; // Zero-indexed array
+			return i; // Zero-indexed array
 		}
 	}
 	std::cout << "Expected duration: " << times[times.size() - 1] << " " << times.size() << std::endl;
@@ -178,4 +178,21 @@ void printPositions(PositionsVector positions) {
 		std::cout << p[0] << "," << p[1] << " ";
 	}
 	std::cout << std::endl;
+}
+
+std::string generateString(PositionsVector positions, bool isJump) {
+	std::string returnable = "";
+	for (int i = 0; i < positions.size() - 1; i++) {
+		if (isJump) {
+			returnable += "J ";
+		}
+		else {
+			returnable += "E ";
+		}
+		std::array<int, 2> first = positions[i], second = positions[i + 1];
+		char* currentLine = (char*)malloc(40 * sizeof(char));
+		snprintf(currentLine, 40, "%d,%d %d,%d\n", first[0], first[1], second[0], second[1]);
+		returnable.append(currentLine);
+	}
+	return returnable;
 }
