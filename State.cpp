@@ -27,21 +27,29 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			Reward for: Pieces in opponent's base, pieces towards opponent's base
 			Punish for: Pieces in own base, pieces going everywhere except towards opponent's base
 
+			Update for addendum: If a piece exists at home and this state does not jump from home,
+			Set the score to negative so that this is not chosen.
+
 		If this is a victory condition, then set the score to FLT_MAX
-		If this is a loss condition, then set the score to FLT_MIN
-		If this state was achieved by means of a jump, the change in utility is double for the point at the jump
+		If this is a loss condition, then set the score to -FLT_MAX + 1
 	*/
+
+	// Assume squatters don't exist. We shall set it to true if there are squatters in your house
+	bool squatters = false, squatterMovingOut = false;
 	
 	// Get number of pieces of the player in his own base and the number of pieces in the opponent's base
 	float piecesInBase = 0.0, piecesInOpponent = 0.0;
 	for (std::array<int, 2> loc : playersBases) {
+		if (loc == positions[0]) {
+			squatterMovingOut = true;
+		}
 		if (state[loc[1]][loc[0]] == player) {
+			squatters = true;
 			piecesInBase++;
 		} else if (state[15 - loc[1]][15 - loc[0]] == player) {
 			piecesInOpponent++;
 		}
 	}
-
 	// Do the same for the opponent
 	char opponent = player == 'B' ? 'W' : 'B';
 	PositionsVector opponentBases = getMirror(playersBases);
@@ -54,7 +62,6 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			opponentPiecesInBase++;
 		}
 	}
-
 	// if at least one piece is in opponent bases and the opponent base is filled, you win. And vice-versa.
 	if (piecesInOpponent > 0 && (piecesInOpponent + opponentPiecesInOpponent) == 19) {
 		score = FLT_MAX;
@@ -111,6 +118,11 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			The furtherness from your own base and closeness to the opponent's base also affects the score POSITIVELY
 	*/
 	float totalScore = piecesInOpponent + directionalScore - piecesInBase + fromBaseScore;
+
+	// If squatters exist and the guy moving is not a squatter then set the score to the negative times 2 to discourage this move
+	if (squatters && !squatterMovingOut) {
+		totalScore = 0 - (abs(totalScore) * 2);
+	}
 	score = totalScore;
 }
 
