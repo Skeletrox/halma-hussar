@@ -58,13 +58,6 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			piecesInOpponent++;
 		}
 	}
-
-	// If squatters exist and the guy moving is not a squatter then this move will cause a loss.
-	if (squattersIntelLegit && squatters && !squatterMovingOut) {
-		// std::cout << "Not accepting because squatters exist. Move from " << positions[0][0] << "," << positions[0][1] <<  " to " << positions[positions.size() - 1][0] << "," << positions[positions.size() - 1][1] << std::endl;
-		score = -FLT_MAX + 1;
-		return;
-	}
 	// Do the same for the opponent
 	char opponent = player == 'B' ? 'W' : 'B';
 	PositionsVector opponentBases = getMirror(playersBases);
@@ -133,6 +126,13 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			The furtherness from your own base and closeness to the opponent's base also affects the score POSITIVELY
 	*/
 	float totalScore = piecesInOpponent + directionalScore - piecesInBase + fromBaseScore;
+
+	// If squatters exist and the guy moving is not a squatter then this move will cause a loss.
+	if (squattersIntelLegit && squatters && !squatterMovingOut) {
+		// std::cout << "Not accepting because squatters exist. Move from " << positions[0][0] << "," << positions[0][1] <<  " to " << positions[positions.size() - 1][0] << "," << positions[positions.size() - 1][1] << std::endl;
+		score = totalScore / 2; //Only use this as a last-ditch effort when you cannot move your pieces anywhere
+		return;
+	}
 	score = totalScore;
 }
 
@@ -142,31 +142,19 @@ void State::setFutureStates(PositionsVector positions, map<array<int, 2>, bool> 
 	// If there are pieces still in the base, only choose those pieces. If not, choose all.
 	PositionsSet base = team == 'B' ? getMirrorSet(getMirror(baseAnchors)) : getMirrorSet(baseAnchors);
 	PositionsVector basePieces{}, posArgument{};
-
-	cout << "Here" << endl;
 	// If a point exists in the base, use only that point. Nothing else.
-
-	cout << "Bases are: ";
 	for (array<int, 2> a : base) {
 		cout << a[0] << "," << a[1] << " ";
 	}
 	for (int i = 0; i < positions.size(); i++) {
 		if (base.count(positions[i]) > 0) {
-			cout << positions[i][0] << "," << positions[i][1] << " is in the base" << endl;
 			basePieces.push_back(positions[i]);
 		}
-		else {
-			cout << positions[i][0] << "," << positions[i][1] << " is not in the base" << endl;
-		}
-		cout << "Zdravo" << endl;
 	}
-	cout << "There" << endl;
 	// If there are any base children, then we use them. Else we use all the positions
 	if (basePieces.size() >= 1) {
-		cout << "Pieces are still in the base " << basePieces.size() << endl;
 		posArgument = basePieces;
 	} else {
-		cout << "No pieces still in base" << endl;
 		posArgument = positions;
 	}
 
@@ -174,6 +162,19 @@ void State::setFutureStates(PositionsVector positions, map<array<int, 2>, bool> 
 	jumpResult = getJumps(posArgument, team, baseAnchors, visited, solutions);
 	stepChildren = stepResult.first;
 	jumpChildren = jumpResult.first;
+	/*
+		Special check for addendum: Allow for out-of-base pieces to move if all in-base pieces cannot move
+		"further away" from the base. We assume 2 conditions:
+			1. If the lack of children is due to the disregard of the out-of-base pieces, then regard them.
+			2. No moves actually exist. There is no situation where the in-base piece moving "closer" is legal.
+
+		The second attempt fixes condition 1, doesn't change condition 2
+	*/
+	if (stepChildren.size() == 0 && jumpChildren.size() == 0) {
+		stepResult = getSteps(positions, team, baseAnchors);
+		jumpResult = getJumps(positions, team, baseAnchors, visited, solutions);
+	}
+
 	// Get the index of the best child from each result
 	int stepChildrenIndex = stepResult.second, jumpChildrenIndex = jumpResult.second;
 
