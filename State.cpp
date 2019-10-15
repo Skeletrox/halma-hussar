@@ -34,9 +34,16 @@ void State::computeScore(char player, PositionsVector playersBases) {
 		If this is a loss condition, then set the score to -FLT_MAX + 1
 	*/
 
-	// Assume squatters don't exist. We shall set it to true if there are squatters in your house
+	// Assume squatters don't exist. We shall set it to true if there are squatters in your base
+	// Also identify who is the source of this evaluation to ensure we calculate the appropriate squatters
 	bool squatters = false, squatterMovingOut = false;
-	
+
+	// The piece in the last location of positions corresponds to the team making the call.
+	char evaluatedBy = state[positions[positions.size() - 1][1]][positions[positions.size() - 1][0]];
+
+	// If the evaluation wasn't called by the player, then the squatters report is false.
+	bool squattersIntelLegit = evaluatedBy == player;
+
 	// Get number of pieces of the player in his own base and the number of pieces in the opponent's base
 	float piecesInBase = 0.0, piecesInOpponent = 0.0;
 	for (std::array<int, 2> loc : playersBases) {
@@ -120,7 +127,7 @@ void State::computeScore(char player, PositionsVector playersBases) {
 	float totalScore = piecesInOpponent + directionalScore - piecesInBase + fromBaseScore;
 
 	// If squatters exist and the guy moving is not a squatter then set the score to the negative times 2 to discourage this move
-	if (squatters && !squatterMovingOut) {
+	if (squattersIntelLegit && squatters && !squatterMovingOut) {
 		totalScore = 0 - (abs(totalScore) * 2);
 	}
 	score = totalScore;
