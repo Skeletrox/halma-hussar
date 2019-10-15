@@ -52,7 +52,7 @@ Board::Board(StateVector inpState) {
 		{1,4}
 	};
 	for (int i = 0; i < 19; i++) {
-		std::array<int, 2> currWhite, currBlack;
+		std::array<int, 2> currWhite = {}, currBlack = {};
 		for (int j = 0; j < 2; j++) {
 			currBlack[j] = baseAnchors[i][j];
 			currWhite[j] = 15 - baseAnchors[i][j];

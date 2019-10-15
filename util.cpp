@@ -49,44 +49,6 @@ float utility(int x, int y) {
 	return ( numerator / float(sqrt(2)));
 }
 
-
-State* doAlphaBetaPruning(State* root) {
-	if (root->getChildren().size() != 0) {
-		root->setAlphaBetaPrediction(root->getScore());
-	}
-	return root;
-}
-
-float doMaxValue(State* state, float alpha, float beta) {
-	if (state->getChildren().size() == 0) {
-		return state->getScore();
-	}
-	float v = -FLT_MAX + 1;
-	for (State *s : state->getChildren()) {
-		v = max(v, doMinValue(s, alpha, beta));
-		if (v >= beta){
-			return v;
-		}
-		alpha = max(alpha, v);
-	}
-	return v;
-}
-
-float doMinValue(State* state, float alpha, float beta) {
-	if (state->getChildren().size() == 0) {
-		return state->getScore();
-	}
-	float v = FLT_MAX;
-	for (State *s : state->getChildren()) {
-		v = min(v, doMaxValue(s, alpha, beta));
-		if (v <= alpha) {
-			return v;
-		}
-		beta = min(beta, v);
-	}
-	return v;
-}
-
 void printState(State s) {
 	std::vector<std::vector<char>> state = s.getState();
 	for (int i = 0; i < 16; i++) {
@@ -169,6 +131,15 @@ PositionsVector getMirror(PositionsVector original) {
 	for (std::array<int, 2> o : original) {
 		std::array<int, 2> v{ 15 - o[0], 15 - o[1] };
 		mirror.push_back(v);
+	}
+	return mirror;
+}
+
+PositionsSet getMirrorSet(PositionsVector original) {
+	PositionsSet mirror;
+	for (std::array<int, 2> o : original) {
+		std::array<int, 2> v{ 15 - o[0], 15 - o[1] };
+		mirror.insert(v);
 	}
 	return mirror;
 }

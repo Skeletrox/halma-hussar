@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include "components.h"
+#include <map>
 /*
 	Stores a board state with the following values:
 		1. The state of the board

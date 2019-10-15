@@ -12,6 +12,7 @@ State::State(StateVector inpState, PositionsVector inPositions, State *inParent,
 	parent = inParent;
 	desiredChildLoc = -1;
 	score = -FLT_MAX + 1;
+	alphaBetaPrediction = score;
 }
 
 float State::getScore() {
@@ -56,6 +57,13 @@ void State::computeScore(char player, PositionsVector playersBases) {
 		} else if (state[15 - loc[1]][15 - loc[0]] == player) {
 			piecesInOpponent++;
 		}
+	}
+
+	// If squatters exist and the guy moving is not a squatter then this move will cause a loss.
+	if (squattersIntelLegit && squatters && !squatterMovingOut) {
+		// std::cout << "Not accepting because squatters exist. Move from " << positions[0][0] << "," << positions[0][1] <<  " to " << positions[positions.size() - 1][0] << "," << positions[positions.size() - 1][1] << std::endl;
+		score = -FLT_MAX + 1;
+		return;
 	}
 	// Do the same for the opponent
 	char opponent = player == 'B' ? 'W' : 'B';
@@ -125,19 +133,45 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			The furtherness from your own base and closeness to the opponent's base also affects the score POSITIVELY
 	*/
 	float totalScore = piecesInOpponent + directionalScore - piecesInBase + fromBaseScore;
-
-	// If squatters exist and the guy moving is not a squatter then set the score to the negative times 2 to discourage this move
-	if (squattersIntelLegit && squatters && !squatterMovingOut) {
-		totalScore = 0 - (abs(totalScore) * 2);
-	}
 	score = totalScore;
 }
 
 void State::setFutureStates(PositionsVector positions, map<array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors, map<array<int, 2>, State*>* solutions) {
 	std::vector<State*> allChildren{}, stepChildren, jumpChildren;
 	std::pair<std::vector<State*>, int> stepResult, jumpResult;
-	stepResult = getSteps(positions, team, baseAnchors);
-	jumpResult = getJumps(positions, team, baseAnchors, visited, solutions);
+	// If there are pieces still in the base, only choose those pieces. If not, choose all.
+	PositionsSet base = team == 'B' ? getMirrorSet(getMirror(baseAnchors)) : getMirrorSet(baseAnchors);
+	PositionsVector basePieces{}, posArgument{};
+
+	cout << "Here" << endl;
+	// If a point exists in the base, use only that point. Nothing else.
+
+	cout << "Bases are: ";
+	for (array<int, 2> a : base) {
+		cout << a[0] << "," << a[1] << " ";
+	}
+	for (int i = 0; i < positions.size(); i++) {
+		if (base.count(positions[i]) > 0) {
+			cout << positions[i][0] << "," << positions[i][1] << " is in the base" << endl;
+			basePieces.push_back(positions[i]);
+		}
+		else {
+			cout << positions[i][0] << "," << positions[i][1] << " is not in the base" << endl;
+		}
+		cout << "Zdravo" << endl;
+	}
+	cout << "There" << endl;
+	// If there are any base children, then we use them. Else we use all the positions
+	if (basePieces.size() >= 1) {
+		cout << "Pieces are still in the base " << basePieces.size() << endl;
+		posArgument = basePieces;
+	} else {
+		cout << "No pieces still in base" << endl;
+		posArgument = positions;
+	}
+
+	stepResult = getSteps(posArgument, team, baseAnchors);
+	jumpResult = getJumps(posArgument, team, baseAnchors, visited, solutions);
 	stepChildren = stepResult.first;
 	jumpChildren = jumpResult.first;
 	// Get the index of the best child from each result
@@ -186,7 +220,7 @@ std::pair<std::vector<State*>, int> State::getSteps(PositionsVector positions, c
 		int yAdjacents[3] = { y - 1, y, y + 1 };
 
 		// Initialize the adjacent cells vector
-		vector<array<int, 2>> adjacentCells;
+		vector<array<int, 2>> adjacentCells{};
 
 		// counter to handle only 8 points being chosen instead of 9
 		for (int j = 0; j < 3; j++) {
@@ -262,7 +296,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 		int yAdjacents[3] = { y - 1, y, y + 1 };
 
 		// Initialize the adjacent cells vector
-		vector<array<int, 2>> adjacentCells;
+		vector<array<int, 2>> adjacentCells{};
 
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
@@ -307,6 +341,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 						bestJumpScore = needed->getScore();
 						bestJumpIndex = j;
 					}
+					jumpChildren.push_back(needed);
 					continue;
 				}
 				// Perform the jump and update.
