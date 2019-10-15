@@ -26,8 +26,10 @@ int getDepth(float timeRemaining, long calibratedValue);
 
 bool isIllegal(int xStart, int yStart, int xEnd, int yEnd, PositionsVector baseAnchors, char team);
 bool found(int x, int y, PositionsVector baseAnchors, bool reverse);
+bool isOrderedAs(int first, int second, int third, bool reverse);
 
 PositionsVector getMirror(PositionsVector original);
+PositionsSet getMirrorSet(PositionsVector original);
 
 void printPositions(PositionsVector positions);
 

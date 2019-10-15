@@ -26,7 +26,7 @@ long runProgram(float performanceMeasure) {
 	*/
 	ifstream inputFile;
 	inputFile.open("./input.txt");
-	StateVector initState;
+	StateVector initState{};
 	string executionType, s;
 	char team = 'B';
 	float timeLeft = 100.0;
@@ -68,14 +68,14 @@ long runProgram(float performanceMeasure) {
 	Player player = Player(team, playerPositions);
 	/*
 		Generate the minmax tree with the following attributes:
-			The current State
+			The current State	
 			How deep can the player jump
 			The number of turns
 			The locations of the player's points
 			Alpha and Beta [For Alpha-Beta Pruning]
 	*/
 	auto start = chrono::high_resolution_clock::now();
-	currState = board.generateMinMaxTree(currState, depth, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
+	currState = board.generateMinMaxTree(currState, 2, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
 	/*
 	for (State* s : currState->getChildren()) {
 		cout << s->getScore() << endl;

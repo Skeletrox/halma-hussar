@@ -12,6 +12,7 @@ State::State(StateVector inpState, PositionsVector inPositions, State *inParent,
 	parent = inParent;
 	desiredChildLoc = -1;
 	score = -FLT_MAX + 1;
+	alphaBetaPrediction = score;
 }
 
 float State::getScore() {
@@ -27,21 +28,36 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			Reward for: Pieces in opponent's base, pieces towards opponent's base
 			Punish for: Pieces in own base, pieces going everywhere except towards opponent's base
 
+			Update for addendum: If a piece exists at home and this state does not jump from home,
+			Set the score to negative so that this is not chosen.
+
 		If this is a victory condition, then set the score to FLT_MAX
-		If this is a loss condition, then set the score to FLT_MIN
-		If this state was achieved by means of a jump, the change in utility is double for the point at the jump
+		If this is a loss condition, then set the score to -FLT_MAX + 1
 	*/
-	
+
+	// Assume squatters don't exist. We shall set it to true if there are squatters in your base
+	// Also identify who is the source of this evaluation to ensure we calculate the appropriate squatters
+	bool squatters = false, squatterMovingOut = false;
+
+	// The piece in the last location of positions corresponds to the team making the call.
+	char evaluatedBy = state[positions[positions.size() - 1][1]][positions[positions.size() - 1][0]];
+
+	// If the evaluation wasn't called by the player, then the squatters report is false.
+	bool squattersIntelLegit = evaluatedBy == player;
+
 	// Get number of pieces of the player in his own base and the number of pieces in the opponent's base
 	float piecesInBase = 0.0, piecesInOpponent = 0.0;
 	for (std::array<int, 2> loc : playersBases) {
+		if (loc == positions[0]) {
+			squatterMovingOut = true;
+		}
 		if (state[loc[1]][loc[0]] == player) {
+			squatters = true;
 			piecesInBase++;
 		} else if (state[15 - loc[1]][15 - loc[0]] == player) {
 			piecesInOpponent++;
 		}
 	}
-
 	// Do the same for the opponent
 	char opponent = player == 'B' ? 'W' : 'B';
 	PositionsVector opponentBases = getMirror(playersBases);
@@ -54,7 +70,6 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			opponentPiecesInBase++;
 		}
 	}
-
 	// if at least one piece is in opponent bases and the opponent base is filled, you win. And vice-versa.
 	if (piecesInOpponent > 0 && (piecesInOpponent + opponentPiecesInOpponent) == 19) {
 		score = FLT_MAX;
@@ -111,16 +126,55 @@ void State::computeScore(char player, PositionsVector playersBases) {
 			The furtherness from your own base and closeness to the opponent's base also affects the score POSITIVELY
 	*/
 	float totalScore = piecesInOpponent + directionalScore - piecesInBase + fromBaseScore;
+
+	// If squatters exist and the guy moving is not a squatter then this move will cause a loss.
+	if (squattersIntelLegit && squatters && !squatterMovingOut) {
+		// std::cout << "Not accepting because squatters exist. Move from " << positions[0][0] << "," << positions[0][1] <<  " to " << positions[positions.size() - 1][0] << "," << positions[positions.size() - 1][1] << std::endl;
+		score = totalScore / 2; //Only use this as a last-ditch effort when you cannot move your pieces anywhere
+		return;
+	}
 	score = totalScore;
 }
 
 void State::setFutureStates(PositionsVector positions, map<array<int, 2>, bool> *visited, char team, PositionsVector baseAnchors, map<array<int, 2>, State*>* solutions) {
 	std::vector<State*> allChildren{}, stepChildren, jumpChildren;
 	std::pair<std::vector<State*>, int> stepResult, jumpResult;
-	stepResult = getSteps(positions, team, baseAnchors);
-	jumpResult = getJumps(positions, team, baseAnchors, visited, solutions);
+	// If there are pieces still in the base, only choose those pieces. If not, choose all.
+	PositionsSet base = team == 'B' ? getMirrorSet(getMirror(baseAnchors)) : getMirrorSet(baseAnchors);
+	PositionsVector basePieces{}, posArgument{};
+	// If a point exists in the base, use only that point. Nothing else.
+	for (array<int, 2> a : base) {
+		cout << a[0] << "," << a[1] << " ";
+	}
+	for (int i = 0; i < positions.size(); i++) {
+		if (base.count(positions[i]) > 0) {
+			basePieces.push_back(positions[i]);
+		}
+	}
+	// If there are any base children, then we use them. Else we use all the positions
+	if (basePieces.size() >= 1) {
+		posArgument = basePieces;
+	} else {
+		posArgument = positions;
+	}
+
+	stepResult = getSteps(posArgument, team, baseAnchors);
+	jumpResult = getJumps(posArgument, team, baseAnchors, visited, solutions);
 	stepChildren = stepResult.first;
 	jumpChildren = jumpResult.first;
+	/*
+		Special check for addendum: Allow for out-of-base pieces to move if all in-base pieces cannot move
+		"further away" from the base. We assume 2 conditions:
+			1. If the lack of children is due to the disregard of the out-of-base pieces, then regard them.
+			2. No moves actually exist. There is no situation where the in-base piece moving "closer" is legal.
+
+		The second attempt fixes condition 1, doesn't change condition 2
+	*/
+	if (stepChildren.size() == 0 && jumpChildren.size() == 0) {
+		stepResult = getSteps(positions, team, baseAnchors);
+		jumpResult = getJumps(positions, team, baseAnchors, visited, solutions);
+	}
+
 	// Get the index of the best child from each result
 	int stepChildrenIndex = stepResult.second, jumpChildrenIndex = jumpResult.second;
 
@@ -167,7 +221,7 @@ std::pair<std::vector<State*>, int> State::getSteps(PositionsVector positions, c
 		int yAdjacents[3] = { y - 1, y, y + 1 };
 
 		// Initialize the adjacent cells vector
-		vector<array<int, 2>> adjacentCells;
+		vector<array<int, 2>> adjacentCells{};
 
 		// counter to handle only 8 points being chosen instead of 9
 		for (int j = 0; j < 3; j++) {
@@ -243,7 +297,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 		int yAdjacents[3] = { y - 1, y, y + 1 };
 
 		// Initialize the adjacent cells vector
-		vector<array<int, 2>> adjacentCells;
+		vector<array<int, 2>> adjacentCells{};
 
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 3; k++) {
@@ -288,6 +342,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 						bestJumpScore = needed->getScore();
 						bestJumpIndex = j;
 					}
+					jumpChildren.push_back(needed);
 					continue;
 				}
 				// Perform the jump and update.

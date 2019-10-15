@@ -49,44 +49,6 @@ float utility(int x, int y) {
 	return ( numerator / float(sqrt(2)));
 }
 
-
-State* doAlphaBetaPruning(State* root) {
-	if (root->getChildren().size() != 0) {
-		root->setAlphaBetaPrediction(root->getScore());
-	}
-	return root;
-}
-
-float doMaxValue(State* state, float alpha, float beta) {
-	if (state->getChildren().size() == 0) {
-		return state->getScore();
-	}
-	float v = -FLT_MAX + 1;
-	for (State *s : state->getChildren()) {
-		v = max(v, doMinValue(s, alpha, beta));
-		if (v >= beta){
-			return v;
-		}
-		alpha = max(alpha, v);
-	}
-	return v;
-}
-
-float doMinValue(State* state, float alpha, float beta) {
-	if (state->getChildren().size() == 0) {
-		return state->getScore();
-	}
-	float v = FLT_MAX;
-	for (State *s : state->getChildren()) {
-		v = min(v, doMaxValue(s, alpha, beta));
-		if (v <= alpha) {
-			return v;
-		}
-		beta = min(beta, v);
-	}
-	return v;
-}
-
 void printState(State s) {
 	std::vector<std::vector<char>> state = s.getState();
 	for (int i = 0; i < 16; i++) {
@@ -140,6 +102,8 @@ bool isIllegal(int xStart, int yStart, int xEnd, int yEnd, PositionsVector baseA
 			return true;
 		} else if (found(xStart, yStart, baseAnchors, true) && !found(xEnd, yEnd, baseAnchors, true)) { // Case 2
 			return true;
+		} else if (found(xStart, yStart, baseAnchors, true) && found(xEnd, yEnd, baseAnchors, true) && isOrderedAs(xStart, xEnd, baseAnchors[0][0], false) || isOrderedAs(yStart, yEnd, baseAnchors[0][1], false) ) {
+			return true;
 		}
 	}
 	else {
@@ -147,6 +111,8 @@ bool isIllegal(int xStart, int yStart, int xEnd, int yEnd, PositionsVector baseA
 		if (!found(xStart, yStart, baseAnchors, true) && found(xEnd, yEnd, baseAnchors, true)) { // Case 1
 			return true;
 		} else if (found(xStart, yStart, baseAnchors, false) && !found(xEnd, yEnd, baseAnchors, false)) { // Case 2
+			return true;
+		} else if (found(xStart, yStart, baseAnchors, true) && found(xEnd, yEnd, baseAnchors, true) && isOrderedAs(xStart, xEnd, baseAnchors[0][0], true) || isOrderedAs(yStart, yEnd, baseAnchors[0][1], true)) {
 			return true;
 		}
 	}
@@ -163,12 +129,29 @@ bool found(int x, int y, PositionsVector baseAnchors, bool reverse) {
 	return false;
 }
 
+bool isOrderedAs(int first, int second, int third, bool reverse) {
+	if (reverse) {
+		third = 15 - third;
+		return first < second && second < third;
+	}
+	return first > second && second > third;
+}
+
 // Returns the diagonal mirror of the positions along y + x = 15
 PositionsVector getMirror(PositionsVector original) {
 	PositionsVector mirror;
 	for (std::array<int, 2> o : original) {
 		std::array<int, 2> v{ 15 - o[0], 15 - o[1] };
 		mirror.push_back(v);
+	}
+	return mirror;
+}
+
+PositionsSet getMirrorSet(PositionsVector original) {
+	PositionsSet mirror;
+	for (std::array<int, 2> o : original) {
+		std::array<int, 2> v{ 15 - o[0], 15 - o[1] };
+		mirror.insert(v);
 	}
 	return mirror;
 }
