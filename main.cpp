@@ -25,7 +25,7 @@ long runProgram(float performanceMeasure) {
 				.: Empty Cell
 	*/
 	ifstream inputFile;
-	inputFile.open("./input.txt");
+	inputFile.open("./input2.txt");
 	StateVector initState{};
 	string executionType, s;
 	char team = 'B';
@@ -63,7 +63,8 @@ long runProgram(float performanceMeasure) {
 		timeLeft = timeLeft / 45;
 	}
 	State *currState = new State(initState, { {} }, NULL, true);
-	int depth = getDepth(timeLeft, performanceMeasure);
+	currState->computeScore(team, board.getBase(team));
+	int depth = getDepth(timeLeft, performanceMeasure, currState->getScore());
 	PositionsVector playerPositions = getPositions(initState, team);
 	Player player = Player(team, playerPositions);
 	/*
@@ -75,7 +76,7 @@ long runProgram(float performanceMeasure) {
 			Alpha and Beta [For Alpha-Beta Pruning]
 	*/
 	auto start = chrono::high_resolution_clock::now();
-	currState = board.generateMinMaxTree(currState, 2, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
+	currState = board.generateMinMaxTree(currState, depth, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
 	/*
 	for (State* s : currState->getChildren()) {
 		cout << s->getScore() << endl;
@@ -93,7 +94,6 @@ long runProgram(float performanceMeasure) {
 	auto end = chrono::high_resolution_clock::now();
 	long actual = chrono::duration_cast<chrono::microseconds>(end - start).count();
 	cout << "Actual duration: " << actual << endl;
-	PositionsVector dummy = { {0, 1}, {2, 3}, {4, 5} };
 	return actual;
 }
 

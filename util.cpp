@@ -70,7 +70,7 @@ long calibrate() {
 	return diff;
 }
 
-int getDepth(float timeRemaining, long calibratedValue) {
+int getDepth(float timeRemaining, long calibratedValue, float currentScore) {
 	/*
 		The hard time limits are as follows:
 			The following time limits are generated on a calibration factor of 1,
@@ -80,10 +80,11 @@ int getDepth(float timeRemaining, long calibratedValue) {
 			can cause our values to be awry.
 	*/
 	float timeRemainingMicrosec = timeRemaining * 1000000;
-	std::cout << "Remaining time: " << timeRemainingMicrosec << " and calibrated value " << calibratedValue <<  std::endl;
-	std::vector<long> times{ 102065, 491439, 29662318, 103081551 };
+	std::cout << "Remaining time: " << timeRemainingMicrosec << " and calibrated value " << calibratedValue <<  " and score " << currentScore << std::endl;
+	std::vector<long> timesTerminal{ 7416, 24016, 129892, 1457973, 5266859, 51633889 }, timesMidway = { 1419, 77200, 359061, 6874063, 46678036 }, times;
+	times = currentScore < 127 ? timesTerminal : timesMidway;
 	for (int i = 0; i < times.size()-1; i++) {
-		std::cout << i << " " << timeRemainingMicrosec << " " << times[i+1] * calibratedValue << std::endl;
+		std::cout << i << " " << timeRemainingMicrosec << " " << times[i+1] << " " << timesTerminal[i+1] << " " << calibratedValue << std::endl;
 		if (timeRemainingMicrosec < (times[i + 1] * calibratedValue)) {
 			// We don't have enough time to deepen to the next level; stop here
 			std::cout << "Expected duration: " << times[i] << " " << i << std::endl;

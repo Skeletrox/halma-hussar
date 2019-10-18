@@ -22,7 +22,7 @@ void printState(State s);
 
 long calibrate();
 
-int getDepth(float timeRemaining, long calibratedValue);
+int getDepth(float timeRemaining, long calibratedValue, float currentScore);
 
 bool isIllegal(int xStart, int yStart, int xEnd, int yEnd, PositionsVector baseAnchors, char team);
 bool found(int x, int y, PositionsVector baseAnchors, bool reverse);
