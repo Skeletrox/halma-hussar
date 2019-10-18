@@ -129,7 +129,6 @@ void State::computeScore(char player, PositionsVector playersBases) {
 
 	// If squatters exist and the guy moving is not a squatter then this move will cause a loss.
 	if (squattersIntelLegit && squatters && !squatterMovingOut) {
-		// std::cout << "Not accepting because squatters exist. Move from " << positions[0][0] << "," << positions[0][1] <<  " to " << positions[positions.size() - 1][0] << "," << positions[positions.size() - 1][1] << std::endl;
 		score = totalScore / 2; //Only use this as a last-ditch effort when you cannot move your pieces anywhere
 		return;
 	}
@@ -143,9 +142,6 @@ void State::setFutureStates(PositionsVector positions, map<array<int, 2>, bool> 
 	PositionsSet base = team == 'B' ? getMirrorSet(getMirror(baseAnchors)) : getMirrorSet(baseAnchors);
 	PositionsVector basePieces{}, posArgument{};
 	// If a point exists in the base, use only that point. Nothing else.
-	for (array<int, 2> a : base) {
-		cout << a[0] << "," << a[1] << " ";
-	}
 	for (int i = 0; i < positions.size(); i++) {
 		if (base.count(positions[i]) > 0) {
 			basePieces.push_back(positions[i]);
@@ -166,7 +162,7 @@ void State::setFutureStates(PositionsVector positions, map<array<int, 2>, bool> 
 		Special check for addendum: Allow for out-of-base pieces to move if all in-base pieces cannot move
 		"further away" from the base. We assume 2 conditions:
 			1. If the lack of children is due to the disregard of the out-of-base pieces, then regard them.
-			2. No moves actually exist. There is no situation where the in-base piece moving "closer" is legal.
+			2. No moves actually exist [There is no situation where the in-base piece moving "closer" is legal].
 
 		The second attempt fixes condition 1, doesn't change condition 2
 	*/
@@ -388,7 +384,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 				if (singleScore >= expandedScore) {
 					jumpChildren.push_back(childState);
 					precomputed->insert(std::pair<std::array<int, 2>, State*>({newTargetx, newTargety}, childState));
-					childState->setScore(childState->getScore() * 10);
+					childState->setScore(childState->getScore());
 					if (singleScore > bestJumpScore) {
 						bestJumpScore = singleScore;
 						bestJumpIndex = jumpChildren.size() - 1; // The best jump was added last!
@@ -396,7 +392,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 				} else {
 					jumpChildren.push_back(childStateWithChildren);
 					precomputed->insert(std::pair<std::array<int, 2>, State*>({ newTargetx, newTargety }, childStateWithChildren));
-					childStateWithChildren->setScore(childStateWithChildren->getScore() * 10);
+					childStateWithChildren->setScore(childStateWithChildren->getScore());
 					if (expandedScore > bestJumpScore) {
 						bestJumpScore = expandedScore;
 						bestJumpIndex = jumpChildren.size() - 1;
