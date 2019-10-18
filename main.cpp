@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 #include "components.h"
 #include "Board.h"
 #include "Player.h"
@@ -25,17 +26,20 @@ long runProgram(float performanceMeasure) {
 				.: Empty Cell
 	*/
 	ifstream inputFile;
+	fstream playDataFile;
 	inputFile.open("./input2.txt");
 	StateVector initState{};
-	string executionType, s;
+	string executionType = "SINGLE", s = "";
 	char team = 'B';
 	float timeLeft = 100.0;
 	int counter = 0;
 	while (inputFile >> s) {
 		switch (counter) {
 		case 0:
-			// First line: Type of execution
-			executionType = s;
+			// First line: Type of execution. By default is SINGLE
+			if (s.length() > 0) {
+				executionType = s;
+			}
 			break;
 		case 1:
 			// Second line: Team
@@ -43,7 +47,12 @@ long runProgram(float performanceMeasure) {
 			break;
 		case 2:
 			// Third line: Number of seconds remaining
-			timeLeft = stof(s);
+			try {
+				timeLeft = stof(s);
+			}
+			catch (...) {
+				// If there is an error in the input then timeLeft is default
+			}
 			break;
 		default:
 			// The board
@@ -55,21 +64,33 @@ long runProgram(float performanceMeasure) {
 	Board board = Board(initState);
 	/*
 		If the execution type is a game, then check for a playdata.txt
-		The playdata.txt contains the time you can take for a move.
+		The playdata.txt contains the time you can take for a move, and maybe a sequence of steps.
 	*/
 	if (executionType == "GAME") {
-		
+		cout << "Game" << endl;
+		struct stat playFile;
+		cout << stat("./playdata.txt", &playFile) << endl;
+		if (stat("./playdata.txt", &playFile) != -1) {
+			// File exists, read it.
+			playDataFile.open("./playdata.txt");
+			string remainingTime;
+			playDataFile >> remainingTime;
+			timeLeft = stof(remainingTime);
+			cout << "Loaded time left: " << timeLeft << endl;
+		}
+		else {
+			timeLeft = timeLeft / 45;
+		}
 		// The minimum game length is 45 moves, apparently.
-		timeLeft = timeLeft / 45;
 	}
-	State *currState = new State(initState, { {} }, NULL, true);
+	State* currState = new State(initState, { {} }, NULL, true);
 	currState->computeScore(team, board.getBase(team));
 	int depth = getDepth(timeLeft, performanceMeasure, currState->getScore());
 	PositionsVector playerPositions = getPositions(initState, team);
 	Player player = Player(team, playerPositions);
 	/*
 		Generate the minmax tree with the following attributes:
-			The current State	
+			The current State
 			How deep can the player jump
 			The number of turns
 			The locations of the player's points
@@ -77,12 +98,7 @@ long runProgram(float performanceMeasure) {
 	*/
 	auto start = chrono::high_resolution_clock::now();
 	currState = board.generateMinMaxTree(currState, depth, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
-	/*
-	for (State* s : currState->getChildren()) {
-		cout << s->getScore() << endl;
-		printPositions(s->getPositions());
-	}*/
-	State *desiredChild = currState->getDesiredChild();
+	State* desiredChild = currState->getDesiredChild();
 	cout << endl << "desired child has result " << desiredChild->getScore() << ", address " << desiredChild << " and is at index " << currState->getDesiredChildLoc() << endl;
 	cout << "Alpha Beta value for desired child is " << desiredChild->getAlphaBetaPrediction() << endl;
 	cout << "Root is at " << currState << endl;
@@ -91,6 +107,15 @@ long runProgram(float performanceMeasure) {
 	outFile.open("./output.txt");
 	outFile << result;
 	outFile.close();
+	if (executionType == "GAME") {
+		// Some persistent data we may be able to use
+		// Store the actual playtime.
+		playDataFile.open("./playdata.txt", fstream::out);
+		char* timeLeftString = (char*)malloc(20 * sizeof(char));
+		snprintf(timeLeftString, 20, "%.4f", timeLeft);
+		playDataFile << timeLeftString;
+		playDataFile.close();
+	}
 	auto end = chrono::high_resolution_clock::now();
 	long actual = chrono::duration_cast<chrono::microseconds>(end - start).count();
 	cout << "Actual duration: " << actual << endl;

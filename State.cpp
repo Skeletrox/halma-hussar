@@ -384,7 +384,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 				if (singleScore >= expandedScore) {
 					jumpChildren.push_back(childState);
 					precomputed->insert(std::pair<std::array<int, 2>, State*>({newTargetx, newTargety}, childState));
-					childState->setScore(childState->getScore() * 10);
+					childState->setScore(childState->getScore());
 					if (singleScore > bestJumpScore) {
 						bestJumpScore = singleScore;
 						bestJumpIndex = jumpChildren.size() - 1; // The best jump was added last!
@@ -392,7 +392,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 				} else {
 					jumpChildren.push_back(childStateWithChildren);
 					precomputed->insert(std::pair<std::array<int, 2>, State*>({ newTargetx, newTargety }, childStateWithChildren));
-					childStateWithChildren->setScore(childStateWithChildren->getScore() * 10);
+					childStateWithChildren->setScore(childStateWithChildren->getScore());
 					if (expandedScore > bestJumpScore) {
 						bestJumpScore = expandedScore;
 						bestJumpIndex = jumpChildren.size() - 1;

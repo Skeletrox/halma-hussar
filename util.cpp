@@ -59,15 +59,22 @@ void printState(State s) {
 	}
 }
 
+void doSomething(int x) {
+	if (x == 0) {
+		return;
+	}
+	doSomething(x / 2);
+}
+
 long calibrate() {
 	auto start = std::chrono::high_resolution_clock::now();
-	int x = 0;
 	for (int i = 0; i < 1000; i++) {
-		x++;
+		doSomething(i);
 	}
 	auto end = std::chrono::high_resolution_clock::now();
 	long diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-	return diff;
+	// Avoid zeros for powerful machines
+	return diff + 1;
 }
 
 int getDepth(float timeRemaining, long calibratedValue, float currentScore) {
@@ -84,11 +91,10 @@ int getDepth(float timeRemaining, long calibratedValue, float currentScore) {
 	std::vector<long> timesTerminal{ 7416, 24016, 129892, 1457973, 5266859, 51633889 }, timesMidway = { 1419, 77200, 359061, 6874063, 46678036 }, times;
 	times = currentScore < 127 ? timesTerminal : timesMidway;
 	for (int i = 0; i < times.size()-1; i++) {
-		std::cout << i << " " << timeRemainingMicrosec << " " << times[i+1] << " " << timesTerminal[i+1] << " " << calibratedValue << std::endl;
 		if (timeRemainingMicrosec < (times[i + 1] * calibratedValue)) {
 			// We don't have enough time to deepen to the next level; stop here
 			std::cout << "Expected duration: " << times[i] << " " << i << std::endl;
-			return i; // Zero-indexed array
+			return i+1; // Zero-indexed array
 		}
 	}
 	std::cout << "Expected duration: " << times[times.size() - 1] << " " << times.size() << std::endl;
