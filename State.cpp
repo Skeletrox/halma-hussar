@@ -72,13 +72,11 @@ void State::computeScore(char player, PositionsVector playersBases) {
 	}
 	// if at least one piece is in opponent bases and the opponent base is filled, you win. And vice-versa.
 	if (piecesInOpponent > 0 && (piecesInOpponent + opponentPiecesInOpponent) == 19) {
-		cout << "Final victory state achieved at: ";
 		printPositions(positions);
 		score = FLT_MAX;
 		return;
 	}
 	else if (opponentPiecesInBase > 0 && (piecesInBase + opponentPiecesInBase) == 19) {
-		cout << "Final loss state achieved at: ";
 		printPositions(positions);
 		score = -FLT_MAX + 1;
 		return;
@@ -176,9 +174,12 @@ void State::setFutureStates(PositionsVector positions, char team, PositionsVecto
 		jumpResult = getJumps(positions, team, baseAnchors, visited, solutions);
 	}
 
+	// Refresh the results
+	stepChildren = stepResult.first;
+	jumpChildren = jumpResult.first;
+
 	// Get the index of the best child from each result
 	int stepChildrenIndex = stepResult.second, jumpChildrenIndex = jumpResult.second;
-
 	// clean JumpChildren
 	/*
 				Move constraints:
@@ -223,7 +224,7 @@ void State::setFutureStates(PositionsVector positions, char team, PositionsVecto
 
 	if (stepChildrenIndex == -1 && jumpChildrenIndex == -1) {
 		// No Children for this state
-		return;
+		return; 
 	}
 	else if (stepChildrenIndex == -1) {
 		// only Jump Children
