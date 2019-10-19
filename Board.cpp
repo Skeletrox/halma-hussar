@@ -116,11 +116,12 @@ State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector a
 					Alpha is always less than Beta
 					For a maxNode, v being larger than beta implies that the parent is NOT going to choose this
 					For a minNode, v being less than alpha implies the same
-					create a 0.99 factor to penalize child labor
+					create a 0.9 factor to penalize child labor, i.e. prefer moves that get a result in this move over those
+					that get it in the next.
 		*/
 		if ((isMax && result > v) || (!isMax && result < v)) {
 			parent->setDesiredChildLoc(i);
-			v = result*0.9;
+			v = result - 0.9;
 		}
 		if ((isMax && v >= beta) || (!isMax && v <= alpha)) {
 			parent->setAlphaBetaPrediction(v);

@@ -72,12 +72,14 @@ void State::computeScore(char player, PositionsVector playersBases) {
 	}
 	// if at least one piece is in opponent bases and the opponent base is filled, you win. And vice-versa.
 	if (piecesInOpponent > 0 && (piecesInOpponent + opponentPiecesInOpponent) == 19) {
-		cout << "Final state achieved at: ";
+		cout << "Final victory state achieved at: ";
 		printPositions(positions);
 		score = FLT_MAX;
 		return;
 	}
 	else if (opponentPiecesInBase > 0 && (piecesInBase + opponentPiecesInBase) == 19) {
+		cout << "Final loss state achieved at: ";
+		printPositions(positions);
 		score = -FLT_MAX + 1;
 		return;
 	}
@@ -231,8 +233,6 @@ void State::setFutureStates(PositionsVector positions, char team, PositionsVecto
 		this->desiredChildLoc = stepChildrenIndex;
 	} else {
 		// both exist
-		cout << "StepChildrenIndex: " << stepChildrenIndex << " stepChildrenSize: " << stepChildren.size() << endl;
-		cout << "JumpChildrenIndex: " << jumpChildrenIndex << " jumpChildrenSize: " << jumpChildren.size() << endl;
 		if (stepChildren[stepChildrenIndex]->getScore() > jumpChildren[jumpChildrenIndex]->getScore()) {
 			desiredChildLoc = stepChildrenIndex; // The better child
 		}
@@ -433,23 +433,23 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 				}
 				float singleScore = childState->getScore(), expandedScore = childStateWithChildren->getScore();
 				if (singleScore >= expandedScore) {
-					jumpChildren.push_back(childState);
 					precomputed->insert(std::pair<std::array<int, 4>, State*>({x, y, newTargetx, newTargety}, childState));
 					childState->setScore(childState->getScore());
 					if (singleScore > bestJumpScore) {
 						bestJumpScore = singleScore;
-						bestJumpIndex = jumpChildren.size() - 1; // The best jump was added last!
+						bestJumpIndex = jumpChildren.size(); // The best jump was added last!
 					}
+					jumpChildren.push_back(childState);
 				} else {
-					jumpChildren.push_back(childStateWithChildren);
 					precomputed->insert(std::pair<std::array<int, 4>, State*>({x, y, newTargetx, newTargety }, childStateWithChildren));
 					childStateWithChildren->setScore(childStateWithChildren->getScore());
 					if (expandedScore > bestJumpScore) {
 						bestJumpScore = expandedScore;
-						bestJumpIndex = jumpChildren.size() - 1;
+						bestJumpIndex = jumpChildren.size();
 						setDesiredChildLoc(bestJumpIndex);
 						setScore(bestJumpScore);
 					}
+					jumpChildren.push_back(childStateWithChildren);
 				}
 			}
 		}
