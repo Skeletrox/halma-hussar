@@ -139,4 +139,5 @@ long runProgram(float performanceMeasure) {
 int main() {
 	float performanceMeasure = calibrate();
 	runProgram(performanceMeasure);
+	return 0;
 }

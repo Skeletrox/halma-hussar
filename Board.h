@@ -1,4 +1,6 @@
-#pragma once
+#ifndef BOARD_H
+#define BOARD_H
+
 #include "components.h"
 #include "State.h"
 #include <cfloat>
@@ -16,3 +18,4 @@ public:
 	State* generateMinMaxTree(State *s, int turnCount, PositionsVector argLocations, float alpha, float beta, bool max);
 };
 
+#endif // !BOARD_H

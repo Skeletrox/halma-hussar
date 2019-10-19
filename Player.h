@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PLAYER_H
+#define PLAYER_H
 #include "components.h"
 #include <array>
 
@@ -33,3 +34,4 @@ public:
 	// Given a board state, chooses best possible move, returning a 2x2 matrix of [src, dest]
 	PositionsVector makeMove(StateVector state);
 };
+#endif // !PLAYER_H

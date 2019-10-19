@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STATE_H
+#define STATE_H
 #include <iostream>
 #include "components.h"
 #include <map>
@@ -52,4 +53,4 @@ public:
 	bool isStateAJump();
 
 };
-
+#endif // !STATE_H

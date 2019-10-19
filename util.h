@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UTIL_H
+#define UTIL_H
 #include "components.h"
 #include "State.h"
 #include <limits>
@@ -34,3 +35,4 @@ PositionsSet getMirrorSet(PositionsVector original);
 void printPositions(PositionsVector positions);
 
 std::string generateString(PositionsVector positions, bool isJump);
+#endif // !UTIL_H
