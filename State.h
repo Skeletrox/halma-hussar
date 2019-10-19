@@ -31,9 +31,9 @@ public:
 	void setChildrenAndDesired(std::vector<State*> argChildren, int desiredLoc);
 
 	//Future state predictors
-	void setFutureStates(PositionsVector positions, std::map<std::array<int, 2>, bool>* visited, char team, PositionsVector baseAnchors, std::map<std::array<int, 2>, State*>* solutions);
+	void setFutureStates(PositionsVector positions, char team, PositionsVector baseAnchors, std::map<std::array<int, 4>, State*>* solutions);
 	std::pair<std::vector<State*>, int> getSteps(PositionsVector positions, char team, PositionsVector baseAnchors);
-	std::pair<std::vector<State*>, int> getJumps(PositionsVector positions, char team, PositionsVector baseAnchors, std::map<std::array<int, 2>, bool> *visited, std::map<std::array<int, 2>, State *> *precomputed);
+	std::pair<std::vector<State*>, int> getJumps(PositionsVector positions, char team, PositionsVector baseAnchors, std::map<std::array<int, 2>, bool> *visited, std::map<std::array<int, 4>, State *> *precomputed);
 
 	// Getter and setter for score and alphaBetaPrediction
 	void computeScore(char player, PositionsVector playersBases);
@@ -50,6 +50,9 @@ public:
 
 	// jump getter
 	bool isStateAJump();
+
+	// lets you know if the illegal child has a path to legality
+	State* getLegalizedIfExists(State child);
 	
 };
 

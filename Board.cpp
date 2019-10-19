@@ -60,8 +60,7 @@ Board::Board(StateVector inpState) {
 		blackBase.push_back(currBlack);
 		whiteBase.push_back(currWhite);
 	}
-	visited = new std::map<std::array<int, 2>, bool>;
-	solutions = new std::map<std::array<int, 2>,State*>;
+	solutions = new std::map<std::array<int, 4>,State*>;
 
 }
 
@@ -79,8 +78,7 @@ PositionsVector Board::getBase(char team) {
 	This implies that for a depth of 3 moves, you look at 7 million moves. Use alpha beta pruning?
 */
 State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector argLocations, float alpha, float beta, bool isMax) {
-	visited->insert(std::pair<std::array<int, 2>, bool>({}, false));
-	solutions->insert(std::pair<std::array<int, 2>, State*>({}, NULL));
+	solutions->insert(std::pair<std::array<int, 4>, State*>({}, NULL));
 	/*
 		Get the opponent's locations how?
 			Given your pieces, calculate the appropriate PositionsVector for the other player?
@@ -103,7 +101,7 @@ State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector a
 		parent->setAlphaBetaPrediction(parent->getScore());
 		return parent;
 	}
-	parent->setFutureStates(argLocations, visited, team, blackBase, solutions);
+	parent->setFutureStates(argLocations, team, blackBase, solutions);
 	// If the node is a MAX expander, set the value to -inf, else set it to inf
 	float v = isMax ? -FLT_MAX + 1 : FLT_MAX;
 	 
@@ -118,12 +116,13 @@ State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector a
 					Alpha is always less than Beta
 					For a maxNode, v being larger than beta implies that the parent is NOT going to choose this
 					For a minNode, v being less than alpha implies the same
+					create a 0.99 factor to penalize child labor
 		*/
 		if ((isMax && result > v) || (!isMax && result < v)) {
 			parent->setDesiredChildLoc(i);
-			v = result;
+			v = result*0.9;
 		}
-		if ((isMax && v >= beta) || (!isMax && result <= alpha)) {
+		if ((isMax && v >= beta) || (!isMax && v <= alpha)) {
 			parent->setAlphaBetaPrediction(v);
 			return parent;
 		}
