@@ -27,7 +27,7 @@ long runProgram(float performanceMeasure) {
 	*/
 	ifstream inputFile;
 	fstream playDataFile;
-	inputFile.open("./input3.txt");
+	inputFile.open("./input4.txt");
 	StateVector initState{};
 	string executionType = "SINGLE", s = "";
 	char team = 'B';

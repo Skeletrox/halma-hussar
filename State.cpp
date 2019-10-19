@@ -177,6 +177,48 @@ void State::setFutureStates(PositionsVector positions, char team, PositionsVecto
 	// Get the index of the best child from each result
 	int stepChildrenIndex = stepResult.second, jumpChildrenIndex = jumpResult.second;
 
+	// clean JumpChildren
+	/*
+				Move constraints:
+					Track illegal children and ensure their children lead to legality.
+					If a child is illegal, get its legalizing children recursively and set as child, if at least one exists.
+	*/
+	PositionsVector jumpPositions;
+	int i = 0;
+	while (i < jumpChildren.size()) {
+		jumpPositions = jumpChildren[i]->getPositions();
+		int startX = jumpPositions[0][0], startY = jumpPositions[0][1];
+		int endX = jumpPositions[jumpPositions.size() - 1][0], endY = jumpPositions[jumpPositions.size() - 1][1];
+		if (isIllegal(startX, startY, endX, endY, baseAnchors, team)) {
+			// Remove this child from the node
+			jumpChildren.erase(jumpChildren.begin() + i);
+			if (i < jumpChildrenIndex) {
+				// The desired jump child is now one index before where it originally was
+				jumpChildrenIndex--;
+			}
+			else if (i == jumpChildrenIndex) {
+				// Oops. We chose an illegal child as the preferred one and erased it.
+				// Iterate through the children and reset preferred jump child.
+				int maxJumpIndex = 0;
+				float maxJumpScore = -FLT_MAX + 1;
+				for (int j = 0; j < jumpChildren.size(); j++) {
+					if (jumpChildren[j]->getScore() > maxJumpScore) {
+						maxJumpIndex = j;
+						maxJumpScore = jumpChildren[j]->getScore();
+					}
+				}
+				jumpChildrenIndex = maxJumpIndex;
+			} // else we do not care. The max jump child does not change its position in the vector.
+
+			i--; // Show some respect a state has JUST DIED!
+		}
+		i++;
+	}
+	// All jumps are illegal!
+	if (jumpChildren.size() == 0) {
+		jumpChildrenIndex = -1;
+	}
+
 	if (stepChildrenIndex == -1 && jumpChildrenIndex == -1) {
 		// No Children for this state
 		return;
@@ -189,45 +231,8 @@ void State::setFutureStates(PositionsVector positions, char team, PositionsVecto
 		this->desiredChildLoc = stepChildrenIndex;
 	} else {
 		// both exist
-		/*
-				Move constraints:
-					Track illegal children and ensure their children lead to legality.
-					If a child is illegal, get its legalizing children recursively and set as child, if at least one exists.
-			*/
-		PositionsVector jumpPositions;
-		int i = 0;
-		cout << "JumpChildrenIndex is " << jumpChildrenIndex << endl;
-		while (i < jumpChildren.size()) {
-			jumpPositions = jumpChildren[i]->getPositions();
-			int startX = jumpPositions[0][0], startY = jumpPositions[0][1];
-			int endX = jumpPositions[jumpPositions.size() - 1][0], endY = jumpPositions[jumpPositions.size() - 1][1];
-			if (isIllegal(startX, startY, endX, endY, baseAnchors, team)) {
-				// Remove this child from the node
-				cout << "At index " << i << " " << startX << "," << startY << " to " << endX << "," << endY << " is illegal\n";
-				jumpChildren.erase(jumpChildren.begin() + i);
-				if (i < jumpChildrenIndex) {
-					// The desired jump child is now one index before where it originally was
-					cout << "JumpChildrenIndex will be decremented. " << endl;
-					jumpChildrenIndex--;
-				} else if (i == jumpChildrenIndex) {
-					// Oops. We chose an illegal child as the preferred one and erased it.
-					// Iterate through the children and reset preferred jump child.
-					int maxJumpIndex = 0;
-					float maxJumpScore = -FLT_MAX + 1;
-					for (int j = 0; j < jumpChildren.size(); j++) {
-						if (jumpChildren[j]->getScore() > maxJumpScore) {
-							maxJumpIndex = j;
-							maxJumpScore = jumpChildren[j]->getScore();
-						}
-					}
-					jumpChildrenIndex = maxJumpIndex;
-				} // else we do not care. The max jump child does not change its position in the vector.
-
-				i--; // Show some respect a state has JUST DIED!
-			}
-			i++;
-		}
-		cout << "JumpChildrenIndex is finally " << jumpChildrenIndex << endl;
+		cout << "StepChildrenIndex: " << stepChildrenIndex << " stepChildrenSize: " << stepChildren.size() << endl;
+		cout << "JumpChildrenIndex: " << jumpChildrenIndex << " jumpChildrenSize: " << jumpChildren.size() << endl;
 		if (stepChildren[stepChildrenIndex]->getScore() > jumpChildren[jumpChildrenIndex]->getScore()) {
 			desiredChildLoc = stepChildrenIndex; // The better child
 		}
@@ -305,7 +310,7 @@ std::pair<std::vector<State*>, int> State::getSteps(PositionsVector positions, c
 					bestStepIndex = stepChildren.size() - 1;
 					bestStepScore = childState->getScore();
 				}
-				if (childState->getScore() > bestStepScore == FLT_MAX) {
+				if (childState->getScore() == FLT_MAX) {
 					return std::pair<std::vector<State*>, int>{stepChildren, bestStepIndex};
 				}
 				
@@ -328,17 +333,18 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 	for (int i = 0; i < numPositions; i++) {
 		// The point is expressed as x, y
 		// See if all adjacent points are okay
+		array<int, 2> current = positions[i];
+		int x = current[0];
+		int y = current[1];
 		map<array<int, 2>, bool>* needed;
 		// If you are expanding over a child, then use the parent's visited to avoid coming back. Else don't.
 		if (numPositions == 19) {
 			needed = new map<array<int, 2>, bool>;
+			needed->insert(pair<array<int, 2>, bool>({ x, y }, true));
 		}
 		else {
 			needed = visited;
 		}
-		array<int, 2> current = positions[i];
-		int x = current[0];
-		int y = current[1];
 		// Get adjacent positions
 		int xAdjacents[3] = { x - 1, x, x + 1 };
 		int yAdjacents[3] = { y - 1, y, y + 1 };
@@ -391,7 +397,6 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 				newState[newTargety][newTargetx] = newState[y][x] ^ newState[newTargety][newTargetx];
 				newState[y][x] = newState[y][x] ^ newState[newTargety][newTargetx];
 				PositionsVector positionPair = { {x, y}, {newTargetx, newTargety} };
-				visited->insert(std::pair<std::array<int, 2>, bool>({ newTargetx, newTargety }, true));
 				State* childState = new State(newState, positionPair, this, false);
 				/*
 					There are two outcomes, either expand childState and potentially see a drop in utility
@@ -407,8 +412,7 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 				// Use this to get child states so that you can choose the appropriate child later
 				// Only consider jumps from this new target
 				needed->insert(std::pair<std::array<int, 2>, bool>({ newTargetx, newTargety }, true));
-				std::pair<std::vector<State*>, int> result = childStateWithChildren->getJumps({ {newTargetx, newTargety} }, team, baseAnchors, visited, precomputed);
-				cout << "Rssult second " << result.second << " size " << result.first.size() << endl;
+				std::pair<std::vector<State*>, int> result = childStateWithChildren->getJumps({ {newTargetx, newTargety} }, team, baseAnchors, needed, precomputed);
 				if (result.second != -1) {
 					// We can squash a sequence of moves as a child exists for this child
 					childStateWithChildren->setChildrenAndDesired(result.first, result.second);
@@ -452,15 +456,6 @@ std::pair<std::vector<State*>, int> State::getJumps(PositionsVector positions, c
 
 	}
 	return std::pair<std::vector<State*>, int>{jumpChildren, bestJumpIndex};;
-}
-
-State* State::getLegalizedIfExists(State state) {
-	/*
-		Get all children of this state that can legalize this state.
-		Source is the first pair in this state, destination is all the child states that will legalize this
-		and return
-	*/
-	return NULL;
 }
 
 StateVector State::getState() {

@@ -51,8 +51,5 @@ public:
 	// jump getter
 	bool isStateAJump();
 
-	// lets you know if the illegal child has a path to legality
-	State* getLegalizedIfExists(State child);
-	
 };
 
