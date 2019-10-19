@@ -72,11 +72,13 @@ void State::computeScore(char player, PositionsVector playersBases) {
 	}
 	// if at least one piece is in opponent bases and the opponent base is filled, you win. And vice-versa.
 	if (piecesInOpponent > 0 && (piecesInOpponent + opponentPiecesInOpponent) == 19) {
+		cout << "Victory state from ";
 		printPositions(positions);
 		score = FLT_MAX;
 		return;
 	}
 	else if (opponentPiecesInBase > 0 && (piecesInBase + opponentPiecesInBase) == 19) {
+		cout << "Loss state from ";
 		printPositions(positions);
 		score = -FLT_MAX + 1;
 		return;
@@ -158,8 +160,15 @@ void State::setFutureStates(PositionsVector positions, char team, PositionsVecto
 	}
 
 	stepResult = getSteps(posArgument, team, baseAnchors);
-	jumpResult = getJumps(posArgument, team, baseAnchors, visited, solutions);
 	stepChildren = stepResult.first;
+	int stepChildIndex = stepResult.second;
+	// if a step returns a victory, then don't bother jumping.
+	if (stepChildIndex > -1 && stepChildren[stepChildIndex]->getScore() == FLT_MAX) {
+		setChildren(stepChildren);
+		desiredChildLoc = stepChildIndex;
+		return;
+	}
+	jumpResult = getJumps(posArgument, team, baseAnchors, visited, solutions);
 	jumpChildren = jumpResult.first;
 	/*
 		Special check for addendum: Allow for out-of-base pieces to move if all in-base pieces cannot move
@@ -184,7 +193,6 @@ void State::setFutureStates(PositionsVector positions, char team, PositionsVecto
 	/*
 				Move constraints:
 					Track illegal children and ensure their children lead to legality.
-					If a child is illegal, get its legalizing children recursively and set as child, if at least one exists.
 	*/
 	PositionsVector jumpPositions;
 	int i = 0;
@@ -305,13 +313,17 @@ std::pair<std::vector<State*>, int> State::getSteps(PositionsVector positions, c
 				// Create a child state object
 				PositionsVector positionPair = { {x, y}, {currX, currY} };
 				State* childState = new State(newState, positionPair, this, false);
-				stepChildren.push_back(childState);
 				childState->computeScore(team, team == 'B' ? baseAnchors : getMirror(baseAnchors));
+
+				// Best score yet
 				if (childState->getScore() > bestStepScore) {
-					bestStepIndex = stepChildren.size() - 1;
+					bestStepIndex = stepChildren.size();
 					bestStepScore = childState->getScore();
 				}
+				stepChildren.push_back(childState);
+				
 				if (childState->getScore() == FLT_MAX) {
+					// Ding ding ding we have a winner. Don't bother expanding the rest.
 					return std::pair<std::vector<State*>, int>{stepChildren, bestStepIndex};
 				}
 				

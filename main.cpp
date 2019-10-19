@@ -27,7 +27,7 @@ long runProgram(float performanceMeasure) {
 	*/
 	ifstream inputFile;
 	fstream playDataFile;
-	inputFile.open("./input4.txt");
+	inputFile.open("./input.txt");
 	StateVector initState{};
 	string executionType = "SINGLE", s = "";
 	char team = 'B';
@@ -100,12 +100,19 @@ long runProgram(float performanceMeasure) {
 	*/
 	auto start = chrono::high_resolution_clock::now();
 	currState = board.generateMinMaxTree(currState, depth, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
-	for (State *x : currState->getChildren()) {
-		cout << "State value is: " << x->getAlphaBetaPrediction() << endl;
-		cout << "State move is: ";
-		printPositions(x->getPositions());
+
+	// Get the argmax of all alphabetas of currState's children
+	cout << currState->getChildren().size() << endl;
+	vector<State*> children = currState->getChildren();
+	float maxChildScore = -FLT_MAX + 1;
+	int maxChildLoc = -1;
+	for (int i = 0; i < children.size(); i++) {
+		if (children[i]->getAlphaBetaPrediction() > maxChildScore) {
+			maxChildScore = children[i]->getAlphaBetaPrediction();
+			maxChildLoc = i;
+		 }
 	}
-	State* desiredChild = currState->getDesiredChild();
+	State* desiredChild = children[maxChildLoc];
 	cout << endl << "desired child has result " << desiredChild->getScore() << ", address " << desiredChild << " and is at index " << currState->getDesiredChildLoc() << endl;
 	cout << "Alpha Beta value for desired child is " << desiredChild->getAlphaBetaPrediction() << endl;
 	cout << "Root is at " << currState << endl;
