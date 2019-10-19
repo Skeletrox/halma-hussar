@@ -109,7 +109,7 @@ bool isIllegal(int xStart, int yStart, int xEnd, int yEnd, PositionsVector baseA
 			return true;
 		} else if (found(xStart, yStart, baseAnchors, true) && !found(xEnd, yEnd, baseAnchors, true)) { // Case 2
 			return true;
-		} else if (found(xStart, yStart, baseAnchors, true) && found(xEnd, yEnd, baseAnchors, true) && isOrderedAs(xStart, xEnd, baseAnchors[0][0], false) || isOrderedAs(yStart, yEnd, baseAnchors[0][1], false) ) {
+		} else if (found(xStart, yStart, baseAnchors, false) && found(xEnd, yEnd, baseAnchors, false) && isOrderedAs(xStart, xEnd, baseAnchors[0][0], false) || isOrderedAs(yStart, yEnd, baseAnchors[0][1], false) ) {
 			return true;
 		}
 	}
@@ -136,12 +136,17 @@ bool found(int x, int y, PositionsVector baseAnchors, bool reverse) {
 	return false;
 }
 
+/*
+	Returns true if second is either at third or on the way between first and third.
+*/
 bool isOrderedAs(int first, int second, int third, bool reverse) {
 	if (reverse) {
 		third = 15 - third;
-		return first < second && second < third;
+		// std::cout << "First: " << first << " second: " << second << " third: " << third << std::endl;
+		return first < second && second <= third;
 	}
-	return first > second && second > third;
+	// std::cout << "First: " << first << " second: " << second << " third: " << third << std::endl;
+	return first > second && second >= third;
 }
 
 // Returns the diagonal mirror of the positions along y + x = 15

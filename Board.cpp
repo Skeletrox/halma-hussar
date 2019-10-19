@@ -60,8 +60,7 @@ Board::Board(StateVector inpState) {
 		blackBase.push_back(currBlack);
 		whiteBase.push_back(currWhite);
 	}
-	visited = new std::map<std::array<int, 2>, bool>;
-	solutions = new std::map<std::array<int, 2>,State*>;
+	solutions = new std::map<std::array<int, 4>,State*>;
 
 }
 
@@ -78,9 +77,8 @@ PositionsVector Board::getBase(char team) {
 	However, for each piece, there are upto 8, implying upto 152 moves per level, not counting jumps
 	This implies that for a depth of 3 moves, you look at 7 million moves. Use alpha beta pruning?
 */
-State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector argLocations, float alpha, float beta, bool isMax) {
-	visited->insert(std::pair<std::array<int, 2>, bool>({}, false));
-	solutions->insert(std::pair<std::array<int, 2>, State*>({}, NULL));
+State* Board::generateMinMaxTree(State* parent, int turnCount, PositionsVector argLocations, float alpha, float beta, bool isMax) {
+	solutions->insert(std::pair<std::array<int, 4>, State*>({}, NULL));
 	/*
 		Get the opponent's locations how?
 			Given your pieces, calculate the appropriate PositionsVector for the other player?
@@ -88,25 +86,23 @@ State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector a
 			Also try to incorporate Alpha Beta Pruning here itself to avoid unnecessary expansion
 	*/
 	char team = parent->getState()[argLocations[0][1]][argLocations[0][0]];
-
 	// Create all the child states of this parent
 	char opponentTeam = team == 'B' ? 'W' : 'B';
+	char target = isMax ? team : opponentTeam;
+	parent->computeScore(target, getBase(target));
 	PositionsVector opponentPositions = getPositions(parent->getState(), opponentTeam);
-	// If we have reached the depth then we shall return the utility of this board
-	if (turnCount == 0) {
+	// If we have reached the depth / terminal condition then we shall return the utility of this board
+	if (turnCount == 0 || parent->getScore() == FLT_MAX || parent->getScore() == FLT_MIN) {
 		/*
 			If isMax is true, then the player is the one making the terminal move, else it's the other player
 			We need to get the utility only for the terminal state
 		*/
-		char target = isMax ? team : opponentTeam;
-		parent->computeScore(target, getBase(target));
 		parent->setAlphaBetaPrediction(parent->getScore());
 		return parent;
 	}
-	parent->setFutureStates(argLocations, visited, team, blackBase, solutions);
+	parent->setFutureStates(argLocations, team, blackBase, solutions);
 	// If the node is a MAX expander, set the value to -inf, else set it to inf
-	float v = isMax ? -FLT_MAX + 1 : FLT_MAX;
-	 
+	float v = isMax ? -FLT_MAX + 1 : FLT_MAX; 
 	// Get all the children
 	std::vector<State *> children = parent->getChildren();
 	for (int i = 0; i < children.size(); i++) {
@@ -121,19 +117,21 @@ State* Board::generateMinMaxTree(State *parent, int turnCount, PositionsVector a
 		*/
 		if ((isMax && result > v) || (!isMax && result < v)) {
 			parent->setDesiredChildLoc(i);
-			v = result;
+			v = result - 0.9;
 		}
-		if ((isMax && v >= beta) || (!isMax && result <= alpha)) {
+		if ((isMax && result >= beta) || (!isMax && result <= alpha)) {
 			parent->setAlphaBetaPrediction(v);
 			return parent;
 		}
 		if (isMax) {
-			alpha = max(alpha, v);
+			alpha = max(alpha, result);
 		} else {
-			beta = min(beta, v);
+			beta = min(beta, result);
 		}
 	}
 	parent->setChildren(children);
+	// create a 0.9 factor to penalize child labor, i.e.prefer moves that get a result in this move over those
+	// that get it in the future.
 	parent->setAlphaBetaPrediction(v);
 	return parent;
 }
