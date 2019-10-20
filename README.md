@@ -10,7 +10,7 @@ The Greek word for jump, Halma is a variation of checkers. This project plays Ha
 
 The Hussars were typically the elite cavalry of the Eastern European / Balkan Kingdoms. Most notably, the **Polish Winged Hussars** were among the most feared and powerful units of their time, [regularly routing armies much larger than themselves](http://www.badassoftheweek.com/hussars.html) for over two centuries.
 
-![The Polish Winged Hussars](https://imgur.com/qocJeTO.gif)
+![](https://imgur.com/qocJeTO.gif)
 
 Bring the two together as you will.
 
