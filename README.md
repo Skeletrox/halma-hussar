@@ -10,7 +10,9 @@ The Greek word for jump, Halma is a variation of checkers. This project plays Ha
 
 The Hussars were typically the elite cavalry of the Eastern European / Balkan Kingdoms. Most notably, the **Polish Winged Hussars** were among the most feared and powerful units of their time, [regularly routing armies much larger than themselves](http://www.badassoftheweek.com/hussars.html) for over two centuries.
 
-![There's supposed to be an image of a Winged Hussar here, but I guess you can do a Google Search instead](https://cdn.forums.splashdamage.com/original/3X/7/2/721cfc785adbdfe8983e1c7c58aabfa2fbc2fb0a.jpg)
+![There's supposed to be an image of a Winged Hussar here, but I guess you can do a Google Search instead](https://cdn.forums.splashdamage.com/original/3X/7/2/
+721cfc785adbdfe8983e1c7c58aabfa2fbc2fb0a.jpg)
+
 Bring the two together as you will.
 
 ## Why C++
