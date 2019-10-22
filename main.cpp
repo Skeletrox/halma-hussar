@@ -10,28 +10,20 @@
 #include "util.h"
 #include <chrono>
 #include <cfloat>
+#include <ctime>
+#include <cstdlib>
 
 using namespace std;
 
 long runProgram(float performanceMeasure) {
-	/*Take inputs and store them in a vector
-
-		Line Sequence:
-			First line: SINGLE / GAME => Type of evaluation, or whatever
-			Second line: BLACK or WHITE, what your team is
-			Third line: A strictly positive float indicating time left
-			16 lines: The board state, defined as:
-				W: White Piece
-				B: Black Piece
-				.: Empty Cell
-	*/
 	ifstream inputFile;
 	fstream playDataFile;
 	inputFile.open("./input.txt");
 	StateVector initState{};
 	string executionType = "SINGLE", s = "";
 	char team = 'B';
-	float timeLeft = 100.0;
+	bool randNeeded;
+	float timeLeft = 100.0, previousScore = -1.0;
 	int counter = 0;
 	while (inputFile >> s) {
 		switch (counter) {
@@ -66,29 +58,34 @@ long runProgram(float performanceMeasure) {
 		If the execution type is a game, then check for a playdata.txt
 		The playdata.txt contains the time you can take for a move, and maybe a sequence of steps.
 	*/
+	State* currState = new State(initState, { {} }, NULL, true);
+	currState->computeScore(team, board.getBase(team));
+
 	if (executionType == "GAME") {
-		cout << "Game" << endl;
 		struct stat playFile;
-		cout << stat("./playdata.txt", &playFile) << endl;
 		if (stat("./playdata.txt", &playFile) != -1) {
 			// File exists, read it.
 			playDataFile.open("./playdata.txt");
-			string remainingTime;
-			playDataFile >> remainingTime;
-			timeLeft = stof(remainingTime);
-			cout << "Loaded time left: " << timeLeft << endl;
+			playDataFile >> s;
+			float timeLeftFromPlayData = stof(s);
+			playDataFile >> s;
+			previousScore = stof(s);
+			if (timeLeftFromPlayData > timeLeft) {
+				// We don't have the time we think we have
+				// Try to squeeze out 10 moves from the remaining time
+				timeLeft = timeLeft / 10;
+			}
+			else {
+				timeLeft = timeLeftFromPlayData;
+			}
 		}
 		else {
-			timeLeft = timeLeft / 45;
+			timeLeft = timeLeft / 110;
 		}
-		// The minimum game length is 45 moves, apparently.
+		// Average game length of 110 moves
 	}
-	State* currState = new State(initState, { {} }, NULL, true);
-	currState->computeScore(team, board.getBase(team));
 	int depth = getDepth(timeLeft, performanceMeasure, currState->getScore());
 	PositionsVector playerPositions = getPositions(initState, team);
-	cout << "Player positions are: " << endl;
-	printPositions(playerPositions);
 	Player player = Player(team, playerPositions);
 	/*
 		Generate the minmax tree with the following attributes:
@@ -99,24 +96,34 @@ long runProgram(float performanceMeasure) {
 			Alpha and Beta [For Alpha-Beta Pruning]
 	*/
 	auto start = chrono::high_resolution_clock::now();
-	currState = board.generateMinMaxTree(currState, depth, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
+	currState = board.generateMinMaxTree(currState, 2, player.getLocations(), -FLT_MAX + 1, FLT_MAX, true);
 
 	// Get the argmax of all alphabetas of currState's children
-	cout << currState->getChildren().size() << endl;
 	vector<State*> children = currState->getChildren();
-	float maxChildScore = -FLT_MAX + 1;
+	float maxChildScore = -FLT_MAX;
 	int maxChildLoc = -1;
+
 	for (int i = 0; i < children.size(); i++) {
 		if (children[i]->getAlphaBetaPrediction() > maxChildScore) {
 			maxChildScore = children[i]->getAlphaBetaPrediction();
 			maxChildLoc = i;
-		 }
+		}
 	}
-	State* desiredChild = children[maxChildLoc];
-	cout << endl << "desired child has result " << desiredChild->getScore() << ", address " << desiredChild << " and is at index " << currState->getDesiredChildLoc() << endl;
-	cout << "Alpha Beta value for desired child is " << desiredChild->getAlphaBetaPrediction() << endl;
-	cout << "Root is at " << currState << endl;
-	string result = generateString(desiredChild->getPositions(), desiredChild->isStateAJump());
+	string result;
+	if (maxChildLoc == -1) {
+		// No valid moves, gracefully exit
+		result = "NO VALID MOVES";
+	}
+	else {
+		State* desiredChild = children[maxChildLoc];
+		if (abs(previousScore - desiredChild->getAlphaBetaPrediction()) < 1.5) {
+			srand(time(NULL));
+			int someNumber = rand();
+			maxChildLoc = someNumber % children.size();
+			desiredChild = children[maxChildLoc];
+		}
+		result = generateString(desiredChild->getPositions(), desiredChild->isStateAJump());
+	}
 	ofstream outFile;
 	outFile.open("./output.txt");
 	outFile << result;
@@ -127,12 +134,12 @@ long runProgram(float performanceMeasure) {
 		playDataFile.open("./playdata.txt", fstream::out);
 		char* timeLeftString = (char*)malloc(20 * sizeof(char));
 		snprintf(timeLeftString, 20, "%.4f", timeLeft);
-		playDataFile << timeLeftString;
+		playDataFile << timeLeftString << endl;
+		playDataFile << currState->getScore();
 		playDataFile.close();
 	}
 	auto end = chrono::high_resolution_clock::now();
 	long actual = chrono::duration_cast<chrono::microseconds>(end - start).count();
-	cout << "Actual duration: " << actual << endl;
 	return actual;
 }
 

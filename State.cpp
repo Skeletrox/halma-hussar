@@ -61,6 +61,8 @@ void State::computeScore(char player, PositionsVector playersBases) {
 	// Do the same for the opponent
 	char opponent = player == 'B' ? 'W' : 'B';
 	PositionsVector opponentBases = getMirror(playersBases);
+	// cout << "Opponent bases are: " << endl; printPositions(opponentBases);
+	// cout << "Your bases are: " << endl; printPositions(playersBases);
 	float opponentPiecesInBase = 0.0, opponentPiecesInOpponent = 0.0;
 	for (std::array<int, 2> loc : opponentBases) {
 		if (state[loc[1]][loc[0]] == opponent) {
@@ -72,14 +74,15 @@ void State::computeScore(char player, PositionsVector playersBases) {
 	}
 	// if at least one piece is in opponent bases and the opponent base is filled, you win. And vice-versa.
 	if (piecesInOpponent > 0 && (piecesInOpponent + opponentPiecesInOpponent) == 19) {
-		cout << "Victory state from ";
-		printPositions(positions);
+		// cout << "Win condition for move " << positions[0][0] << "," << positions[0][1] << " " << positions[positions.size() - 1][0] << "," << positions[positions.size() - 1][1] << endl;
 		score = FLT_MAX;
 		return;
 	}
 	else if (opponentPiecesInBase > 0 && (piecesInBase + opponentPiecesInBase) == 19) {
-		cout << "Loss state from ";
-		printPositions(positions);
+		// cout << "Loss condition for move " << positions[0][0] << "," << positions[0][1] << " " << positions[positions.size() - 1][0] << "," << positions[positions.size() - 1][1] << " for team " << player << endl;
+		// cout << "OPIB: " << opponentPiecesInBase << " PIB: " << piecesInBase << endl;
+		// cout << "Loss State: " << endl;
+		// printState(state);
 		score = -FLT_MAX + 1;
 		return;
 	}
@@ -178,9 +181,12 @@ void State::setFutureStates(PositionsVector positions, char team, PositionsVecto
 
 		The second attempt fixes condition 1, doesn't change condition 2
 	*/
+	// std::cout << "Step children size: " << stepResult.first.size() << " Jump children size: " << jumpResult.first.size() << std::endl;
 	if (stepChildren.size() == 0 && jumpChildren.size() == 0) {
+		// cout << "No children within constraints" << endl;
 		stepResult = getSteps(positions, team, baseAnchors);
 		jumpResult = getJumps(positions, team, baseAnchors, visited, solutions);
+		// std::cout << "Step children size: " << stepResult.first.size() <<  " Jump children size: " << jumpResult.first.size() << std::endl;
 	}
 
 	// Refresh the results
@@ -201,6 +207,7 @@ void State::setFutureStates(PositionsVector positions, char team, PositionsVecto
 		int startX = jumpPositions[0][0], startY = jumpPositions[0][1];
 		int endX = jumpPositions[jumpPositions.size() - 1][0], endY = jumpPositions[jumpPositions.size() - 1][1];
 		if (isIllegal(startX, startY, endX, endY, baseAnchors, team)) {
+			// cout << "Jump illegal from " << startX << "," << startY << " to " << endX << "," << endY << " for team " << team << endl;
 			// Remove this child from the node
 			jumpChildren.erase(jumpChildren.begin() + i);
 			if (i < jumpChildrenIndex) {

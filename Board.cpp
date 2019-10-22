@@ -86,13 +86,12 @@ State* Board::generateMinMaxTree(State* parent, int turnCount, PositionsVector a
 			Also try to incorporate Alpha Beta Pruning here itself to avoid unnecessary expansion
 	*/
 	char team = parent->getState()[argLocations[0][1]][argLocations[0][0]];
-	// Create all the child states of this parent
 	char opponentTeam = team == 'B' ? 'W' : 'B';
 	char target = isMax ? team : opponentTeam;
 	parent->computeScore(target, getBase(target));
-	PositionsVector opponentPositions = getPositions(parent->getState(), opponentTeam);
+	// std::cout << "Target score is: " << parent->getScore() << std::endl;
 	// If we have reached the depth / terminal condition then we shall return the utility of this board
-	if (turnCount == 0 || parent->getScore() == FLT_MAX || parent->getScore() == FLT_MIN) {
+	if (turnCount == 0 || parent->getScore() == FLT_MAX || parent->getScore() == -FLT_MAX + 1) {
 		/*
 			If isMax is true, then the player is the one making the terminal move, else it's the other player
 			We need to get the utility only for the terminal state
@@ -100,12 +99,14 @@ State* Board::generateMinMaxTree(State* parent, int turnCount, PositionsVector a
 		parent->setAlphaBetaPrediction(parent->getScore());
 		return parent;
 	}
+	// Create all the child states of this parent
 	parent->setFutureStates(argLocations, team, blackBase, solutions);
 	// If the node is a MAX expander, set the value to -inf, else set it to inf
 	float v = isMax ? -FLT_MAX + 1 : FLT_MAX; 
 	// Get all the children
 	std::vector<State *> children = parent->getChildren();
 	for (int i = 0; i < children.size(); i++) {
+		PositionsVector opponentPositions = getPositions(children[i]->getState(), opponentTeam);
 		children[i] = generateMinMaxTree(children[i], turnCount - 1, opponentPositions, alpha, beta, !isMax);
 		float result = children[i]->getAlphaBetaPrediction();
 		/*
@@ -117,7 +118,9 @@ State* Board::generateMinMaxTree(State* parent, int turnCount, PositionsVector a
 		*/
 		if ((isMax && result > v) || (!isMax && result < v)) {
 			parent->setDesiredChildLoc(i);
-			v = result - 0.9;
+			// create a 0.9 factor to penalize child labor, i.e.prefer moves that get a result in this move over those
+			// that get it in the future.
+			v = result * 0.9;
 		}
 		if ((isMax && result >= beta) || (!isMax && result <= alpha)) {
 			parent->setAlphaBetaPrediction(v);
@@ -130,8 +133,6 @@ State* Board::generateMinMaxTree(State* parent, int turnCount, PositionsVector a
 		}
 	}
 	parent->setChildren(children);
-	// create a 0.9 factor to penalize child labor, i.e.prefer moves that get a result in this move over those
-	// that get it in the future.
 	parent->setAlphaBetaPrediction(v);
 	return parent;
 }
