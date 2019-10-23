@@ -49,16 +49,6 @@ float utility(int x, int y) {
 	return ( numerator / float(sqrt(2)));
 }
 
-void printState(State s) {
-	std::vector<std::vector<char>> state = s.getState();
-	for (int i = 0; i < 16; i++) {
-		for (int j = 0; j < 16; j++) {
-			std::cout << state[i][j];
-		}
-		std::cout << std::endl;
-	}
-}
-
 void doSomething(int x) {
 	if (x == 0) {
 		return;
@@ -106,20 +96,26 @@ bool isIllegal(int xStart, int yStart, int xEnd, int yEnd, PositionsVector baseA
 		// 1. Your own base is the baseAnchors. Make sure that your piece, if not in your base, does not jump back
 		// 2. Your opponent's base is at 15 - baseAnchors. Do not jump out of it.
 		if (!found(xStart, yStart, baseAnchors, false) && found(xEnd, yEnd, baseAnchors, false)) { // Case 1
+			// std::cout << "Black base cowardice" << std::endl;
 			return true;
 		} else if (found(xStart, yStart, baseAnchors, true) && !found(xEnd, yEnd, baseAnchors, true)) { // Case 2
+			// std::cout << "Black base escapism" << std::endl;
 			return true;
-		} else if (found(xStart, yStart, baseAnchors, false) && found(xEnd, yEnd, baseAnchors, false) && isOrderedAs(xStart, xEnd, baseAnchors[0][0], false) || isOrderedAs(yStart, yEnd, baseAnchors[0][1], false) ) {
+		} else if (found(xStart, yStart, baseAnchors, false) && found(xEnd, yEnd, baseAnchors, false) && (isOrderedAs(xStart, xEnd, baseAnchors[0][0], false) || isOrderedAs(yStart, yEnd, baseAnchors[0][1], false))) {
+			// std::cout << "Black base cowardice within" << std::endl;
 			return true;
 		}
 	}
 	else {
 		// The above lines switched in context.
 		if (!found(xStart, yStart, baseAnchors, true) && found(xEnd, yEnd, baseAnchors, true)) { // Case 1
+			// std::cout << "White base cowardice" << std::endl;
 			return true;
 		} else if (found(xStart, yStart, baseAnchors, false) && !found(xEnd, yEnd, baseAnchors, false)) { // Case 2
+			// std::cout << "White base escapism" << std::endl;
 			return true;
-		} else if (found(xStart, yStart, baseAnchors, true) && found(xEnd, yEnd, baseAnchors, true) && isOrderedAs(xStart, xEnd, baseAnchors[0][0], true) || isOrderedAs(yStart, yEnd, baseAnchors[0][1], true)) {
+		} else if (found(xStart, yStart, baseAnchors, true) && found(xEnd, yEnd, baseAnchors, true) && (isOrderedAs(xStart, xEnd, baseAnchors[0][0], true) || isOrderedAs(yStart, yEnd, baseAnchors[0][1], true))) {
+			// std::cout << "White base cowardice within" << std::endl;
 			return true;
 		}
 	}
@@ -171,6 +167,16 @@ PositionsSet getMirrorSet(PositionsVector original) {
 void printPositions(PositionsVector positions) {
 	for (std::array<int, 2> p : positions) {
 		std::cout << p[0] << "," << p[1] << " ";
+	}
+	std::cout << std::endl;
+}
+
+void printState(StateVector state) {
+	for (int i = 0; i < state.size(); i++) {
+		for (int j = 0; j < state[i].size(); j++) {
+			std::cout << state[i][j];
+		}
+		std::cout << std::endl;
 	}
 	std::cout << std::endl;
 }

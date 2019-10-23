@@ -14,6 +14,10 @@ The Hussars were typically the elite cavalry of the Eastern European / Balkan Ki
 
 Bring the two together as you will.
 
+If you still aren't convinced about the badassery of the Winged Hussars, here's a video for you.
+
+[![Sabaton - Winged Hussars ](https://i3.ytimg.com/vi/75zmIj_4LFQ/hqdefault.jpg)](https://www.youtube.com/watch?v=75zmIj_4LFQ)
+
 ## Why C++
 
 Don't ask why. Ask why not.
